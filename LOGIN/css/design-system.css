@@ -1,0 +1,106 @@
+/* ==========================================================================
+   CareBridge Hospital Dashboard — Design System Tokens
+   Aesthetic: Government Healthcare Portal (Clean, Authoritative, Trustworthy)
+   ========================================================================== */
+
+:root {
+  /* Brand Color Palette - Derived from CareBridge Official Emblem */
+  --cb-navy-900: #061e38;
+  --cb-navy-800: #0a335c;
+  --cb-navy-700: #0f4679;
+  --cb-navy-600: #175d9e;
+  --cb-navy-100: #e8f0f8;
+  --cb-navy-50:  #f2f7fc;
+
+  --cb-teal-700: #007682;
+  --cb-teal-600: #008e9b;
+  --cb-teal-500: #009ead;
+  --cb-teal-400: #14b8c7;
+  --cb-teal-100: #e0f6f8;
+  --cb-teal-50:  #f0fafb;
+
+  /* Neutral Surfaces & Grays */
+  --cb-bg-page: #f8fafc;
+  --cb-bg-surface: #ffffff;
+  --cb-bg-subtle: #f1f5f9;
+  --cb-bg-muted: #e2e8f0;
+
+  /* Typography Colors */
+  --cb-text-primary: #0f172a;
+  --cb-text-secondary: #334155;
+  --cb-text-muted: #64748b;
+  --cb-text-subtle: #94a3b8;
+  --cb-text-inverse: #ffffff;
+
+  /* Functional & State Colors */
+  --cb-border-subtle: #e2e8f0;
+  --cb-border-hover: #cbd5e1;
+  --cb-border-focus: #009ead;
+  --cb-focus-ring: rgba(0, 158, 173, 0.25);
+
+  --cb-error-base: #dc2626;
+  --cb-error-surface: #fef2f2;
+  --cb-error-border: #fecaca;
+  --cb-error-text: #991b1b;
+
+  --cb-success-base: #059669;
+  --cb-success-surface: #ecfdf5;
+  --cb-success-border: #a7f3d0;
+  --cb-success-text: #065f46;
+
+  /* Typography System */
+  --cb-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --cb-font-size-xs: 0.75rem;    /* 12px */
+  --cb-font-size-sm: 0.875rem;   /* 14px */
+  --cb-font-size-base: 1rem;     /* 16px */
+  --cb-font-size-md: 1.125rem;   /* 18px */
+  --cb-font-size-lg: 1.25rem;    /* 20px */
+  --cb-font-size-xl: 1.5rem;     /* 24px */
+  --cb-font-size-2xl: 1.875rem;  /* 30px */
+  --cb-font-size-3xl: 2.25rem;   /* 36px */
+
+  /* Shadows */
+  --cb-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --cb-shadow-sm: 0 2px 4px -1px rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --cb-shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.07), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+  --cb-shadow-lg: 0 20px 32px -8px rgba(15, 23, 42, 0.09), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
+
+  /* Radii */
+  --cb-radius-sm: 6px;
+  --cb-radius-md: 10px;
+  --cb-radius-lg: 14px;
+  --cb-radius-xl: 20px;
+  --cb-radius-full: 9999px;
+
+  /* Transitions */
+  --cb-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --cb-transition-normal: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--cb-font-family);
+  background-color: var(--cb-bg-page);
+  color: var(--cb-text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+input, button, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}

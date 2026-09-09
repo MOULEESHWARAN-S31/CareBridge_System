@@ -1,0 +1,16 @@
+.env
+**/.env
+
+node_modules/
+**/node_modules/
+
+.dart_tool/
+**/.dart_tool/
+
+build/
+**/build/
+
+.vscode/
+.idea/
+
+*.log

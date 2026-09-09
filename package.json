@@ -1,0 +1,30 @@
+{
+  "name": "carebridge-system",
+  "version": "1.0.0",
+  "description": "CareBridge System - Unified Healthcare Platform (Patient App, Admin Dashboard, Government Portal, Common Login, Node.js API, PostgreSQL)",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/start-all.js",
+    "start": "node scripts/start-all.js",
+    "dev:all": "node scripts/start-all.js",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:login": "node scripts/serve-login.js",
+    "dev:admin": "npm --prefix admin-dashboard run dev",
+    "dev:gov": "npm --prefix Government-dashboard run dev",
+    "dev:carebridge": "cd CARE_BRIDGE && flutter run -d chrome --web-port=8080",
+    "test:backend": "npm --prefix backend test",
+    "test:carebridge": "cd CARE_BRIDGE && flutter test",
+    "test:all": "npm run test:backend && npm run test:carebridge"
+  },
+  "keywords": [
+    "carebridge",
+    "telehealth",
+    "abdm",
+    "abha",
+    "healthcare",
+    "government-health",
+    "postgresql"
+  ],
+  "author": "CareBridge Team",
+  "license": "UNLICENSED"
+}

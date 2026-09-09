@@ -1,0 +1,19 @@
+{
+  "name": "carebridge-login",
+  "version": "1.0.0",
+  "description": "CareBridge Portal - Secure Staff Login",
+  "scripts": {
+    "start": "node ../scripts/serve-admin.js",
+    "dev": "node ../scripts/serve-admin.js"
+  },
+  "keywords": [
+    "hospital",
+    "login",
+    "portal"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

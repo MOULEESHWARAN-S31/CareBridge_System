@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand Color Palette - Derived from Login Page Reference */
+  --cb-navy-900: #061e38;
+  --cb-navy-800: #0a335c;
+  --cb-navy-700: #0f4679;
+  --cb-navy-600: #175d9e;
+  --cb-navy-100: #e8f0f8;
+  --cb-navy-50:  #f2f7fc;
+
+  --cb-teal-700: #007682;
+  --cb-teal-600: #008e9b;
+  --cb-teal-500: #009ead;
+  --cb-teal-400: #14b8c7;
+  --cb-teal-100: #e0f6f8;
+  --cb-teal-50:  #f0fafb;
+
+  /* Surfaces & Neutral Backgrounds */
+  --cb-bg-page: #f8fafc;
+  --cb-bg-surface: #ffffff;
+  --cb-bg-subtle: #f1f5f9;
+  --cb-bg-muted: #e2e8f0;
+
+  /* Typography */
+  --cb-text-primary: #0f172a;
+  --cb-text-secondary: #334155;
+  --cb-text-muted: #64748b;
+  --cb-text-subtle: #94a3b8;
+  --cb-text-inverse: #ffffff;
+
+  /* Borders & Shadows */
+  --cb-border-subtle: #e2e8f0;
+  --cb-border-hover: #cbd5e1;
+  --cb-border-focus: #009ead;
+}
+
+@layer base {
+  body {
+    background-color: #ffffff;
+    color: #0f172a;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+}
+
+/* Custom Light-Theme Command Center Aesthetic Utilities */
+.glass-panel {
+  background: #ffffff;
+  backdrop-filter: blur(12px);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
+}
+
+.glass-panel-light {
+  background: #ffffff;
+  backdrop-filter: blur(12px);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+}
+
+.glow-red {
+  box-shadow: 0 0 15px rgba(220, 38, 38, 0.18);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 15px rgba(5, 150, 105, 0.18);
+}
+
+.glow-amber {
+  box-shadow: 0 0 15px rgba(217, 119, 6, 0.18);
+}
+
+.glow-blue {
+  box-shadow: 0 0 15px rgba(15, 70, 121, 0.18);
+}
+
+.map-grid-pattern {
+  background-image: linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Global Light-Theme Component Card Defaults */
+.cb-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
