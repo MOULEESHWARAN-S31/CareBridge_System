@@ -63,6 +63,15 @@ export function createAdminDashboard(onSwitchToLogin) {
   function renderViewport() {
     viewport.innerHTML = '';
 
+    // Top Offline Mock Data Banner (if backend unavailable)
+    if (adminStore.isOfflineMockData) {
+      const mockBanner = document.createElement('div');
+      mockBanner.className = 'admin-offline-banner';
+      mockBanner.style.cssText = 'background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; color: #fbbf24; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;';
+      mockBanner.innerHTML = '<span>⚠️</span><span><strong>Development / Offline Mock Data:</strong> PostgreSQL backend at <code>http://localhost:5000</code> is offline or unreachable. Displaying local simulated master data.</span>';
+      viewport.appendChild(mockBanner);
+    }
+
     // Top Summary Cards
     const summaryCards = createSummaryCards();
     viewport.appendChild(summaryCards);

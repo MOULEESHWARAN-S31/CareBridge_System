@@ -206,6 +206,64 @@ async function runTests() {
       });
       assert(newOrder.status === 201, 'Medicine order placed returns HTTP 201');
       assert(newOrder.body.order.order_id.startsWith('CB-MED-'), 'Order ID generated with CB-MED- prefix');
+
+      // 5J. Hospital Roles Authentication & Authorization Suite
+      console.log('\n  Testing Hospital Roles Authentication (All 10 Roles):');
+      const hospitalRolesToTest = [
+        { username: 'hospital.admin@carebridge.local', password: 'Hospital@123', expectedRole: 'HOSPITAL_ADMIN' },
+        { username: 'doctor@carebridge.local', password: 'Doctor@123', expectedRole: 'DOCTOR' },
+        { username: 'nurse@carebridge.local', password: 'Nurse@123', expectedRole: 'NURSE' },
+        { username: 'reception@carebridge.local', password: 'Reception@123', expectedRole: 'RECEPTIONIST' },
+        { username: 'lab@carebridge.local', password: 'Lab@123', expectedRole: 'LAB_STAFF' },
+        { username: 'pharmacy@carebridge.local', password: 'Pharmacy@123', expectedRole: 'PHARMACIST' },
+        { username: 'billing@carebridge.local', password: 'Billing@123', expectedRole: 'BILLING_STAFF' },
+        { username: 'records@carebridge.local', password: 'Records@123', expectedRole: 'RECORDS_STAFF' },
+        { username: 'emergency@carebridge.local', password: 'Emergency@123', expectedRole: 'EMERGENCY_STAFF' },
+        { username: 'hr@carebridge.local', password: 'HR@123', expectedRole: 'HR_MANAGER' },
+      ];
+
+      let doctorToken = null;
+      for (const t of hospitalRolesToTest) {
+        const res = await request('POST', '/api/auth/login', {
+          username: t.username,
+          password: t.password
+        });
+        assert(res.status === 200, `${t.expectedRole} login returns HTTP 200`);
+        assert(res.body.token != null, `${t.expectedRole} login returns JWT token`);
+        assert(res.body.user.role === t.expectedRole, `User role is ${t.expectedRole}`);
+        assert(res.body.user.hospitalId === 'GDH-SALEM-01', `${t.expectedRole} hospitalId is GDH-SALEM-01`);
+        if (t.expectedRole === 'DOCTOR') {
+          doctorToken = res.body.token;
+        }
+      }
+
+      // 5K. Cross-Role Backend Authorization Check (Hospital DOCTOR cannot access /api/users)
+      console.log('  Testing Hospital Role Cross-Access Enforcement (403 Forbidden):');
+      const docForbidden = await request('GET', '/api/users', null, {
+        Authorization: `Bearer ${doctorToken}`
+      });
+      assert(docForbidden.status === 403, 'DOCTOR user accessing /api/users returns HTTP 403 Forbidden');
+
+      // 5L. Hospital Clinical Endpoints Tests
+      console.log('  Testing Hospital Clinical Operations Endpoints:');
+      const hospOverview = await request('GET', '/api/hospital/overview?hospitalId=GDH-SALEM-01');
+      assert(hospOverview.status === 200, 'GET /api/hospital/overview returns HTTP 200');
+      assert(hospOverview.body.beds != null, 'Hospital overview contains beds data');
+
+      const hospBeds = await request('GET', '/api/hospital/beds?hospitalId=GDH-SALEM-01');
+      assert(hospBeds.status === 200, 'GET /api/hospital/beds returns HTTP 200');
+      assert(Array.isArray(hospBeds.body.wards), 'Hospital beds returns wards array');
+
+      const patientSearch = await request('GET', '/api/hospital/patients/search?query=Ramesh');
+      assert(patientSearch.status === 200, 'GET /api/hospital/patients/search returns HTTP 200');
+      assert(patientSearch.body.length >= 1, 'Patient search returns matching ABHA profile');
+
+      const bedUpdate = await request('PUT', '/api/hospital/beds', {
+        hospitalId: 'GDH-SALEM-01',
+        generalBedsAvailable: 65,
+        icuBedsAvailable: 9
+      }, { Authorization: `Bearer ${doctorToken}` });
+      assert(bedUpdate.status === 200, 'PUT /api/hospital/beds authorized returns HTTP 200');
     }
 
     console.log('\n====================================================');

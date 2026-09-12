@@ -35,7 +35,9 @@ const services = [
     color: '\x1b[35m', // Magenta
     cmd: npmCmd,
     args: ['run', 'dev'],
-    cwd: path.join(ROOT_DIR, 'admin-dashboard'),
+    cwd: fs.existsSync(path.join(ROOT_DIR, 'ADMIN_DASHBOARD'))
+      ? path.join(ROOT_DIR, 'ADMIN_DASHBOARD')
+      : path.join(ROOT_DIR, 'admin-dashboard'),
     port: 5173,
   },
   {
@@ -43,10 +45,22 @@ const services = [
     color: '\x1b[36m', // Cyan
     cmd: npmCmd,
     args: ['run', 'dev'],
-    cwd: fs.existsSync(path.join(ROOT_DIR, 'Government-dashboard', 'Government website', 'government-dashboard'))
-      ? path.join(ROOT_DIR, 'Government-dashboard', 'Government website', 'government-dashboard')
-      : path.join(ROOT_DIR, 'Government-dashboard'),
+    cwd: fs.existsSync(path.join(ROOT_DIR, 'GOVERNMENT_DASHBOARD'))
+      ? path.join(ROOT_DIR, 'GOVERNMENT_DASHBOARD')
+      : (fs.existsSync(path.join(ROOT_DIR, 'GOVERMENT_DASHBOARD'))
+          ? path.join(ROOT_DIR, 'GOVERMENT_DASHBOARD')
+          : path.join(ROOT_DIR, 'Government-dashboard')),
     port: 5174,
+  },
+  {
+    name: 'HOSPITAL',
+    color: '\x1b[33m', // Yellow
+    cmd: npmCmd,
+    args: ['run', 'dev'],
+    cwd: fs.existsSync(path.join(ROOT_DIR, 'HOSPITAL_DASHBOARD'))
+      ? path.join(ROOT_DIR, 'HOSPITAL_DASHBOARD')
+      : path.join(ROOT_DIR, 'hospital-dashboard'),
+    port: 5175,
   },
 ];
 

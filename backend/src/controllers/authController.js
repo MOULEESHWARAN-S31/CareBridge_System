@@ -14,7 +14,7 @@ async function login(req, res, next) {
 
     const sql = `
       SELECT u.id, u.username, u.email, u.password_hash, u.full_name,
-             u.employee_id, u.district, u.is_active, r.name AS role_name
+             u.employee_id, u.district, u.hospital_id, u.is_active, r.name AS role_name
       FROM users u
       JOIN roles r ON u.role_id = r.id
       WHERE LOWER(u.username) = LOWER($1)
@@ -22,6 +22,16 @@ async function login(req, res, next) {
          OR UPPER(u.employee_id) = UPPER($1)
          OR (LOWER($1) IN ('admin', 'administrator', 'adm', 'system admin', 'admin@carebridge.com') AND r.name = 'ADMIN')
          OR (LOWER($1) IN ('government', 'gov', 'gov-001', 'government@carebridge.com') AND r.name = 'GOVERNMENT')
+         OR (LOWER($1) IN ('hospital admin', 'hospital_admin', 'hospital.admin') AND r.name = 'HOSPITAL_ADMIN')
+         OR (LOWER($1) = 'doctor' AND r.name = 'DOCTOR')
+         OR (LOWER($1) = 'nurse' AND r.name = 'NURSE')
+         OR (LOWER($1) = 'reception' AND r.name = 'RECEPTIONIST')
+         OR (LOWER($1) = 'lab' AND r.name = 'LAB_STAFF')
+         OR (LOWER($1) = 'pharmacy' AND r.name = 'PHARMACIST')
+         OR (LOWER($1) = 'billing' AND r.name = 'BILLING_STAFF')
+         OR (LOWER($1) = 'records' AND r.name = 'RECORDS_STAFF')
+         OR (LOWER($1) = 'emergency' AND r.name = 'EMERGENCY_STAFF')
+         OR (LOWER($1) = 'hr' AND r.name = 'HR_MANAGER')
       LIMIT 1;
     `;
 
@@ -60,7 +70,8 @@ async function login(req, res, next) {
       name: userRow.full_name,
       employeeId: userRow.employee_id,
       role: userRow.role_name,
-      district: userRow.district
+      district: userRow.district,
+      hospitalId: userRow.hospital_id || 'GDH-SALEM-01'
     };
 
     const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '24h' });
@@ -75,7 +86,8 @@ async function login(req, res, next) {
         name: userRow.full_name,
         employeeId: userRow.employee_id,
         role: userRow.role_name,
-        district: userRow.district
+        district: userRow.district,
+        hospitalId: userRow.hospital_id || 'GDH-SALEM-01'
       }
     });
   } catch (err) {

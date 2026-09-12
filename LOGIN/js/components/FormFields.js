@@ -95,10 +95,16 @@ export function createRoleSelector() {
       <select id="role-select" name="role" class="form-select" aria-label="Select Role">
         <option value="Administrator" selected>System Administrator</option>
         <option value="Government">Government Health Officer</option>
+        <option value="Hospital Administrator">Hospital Administrator</option>
         <option value="Doctor">Doctor</option>
         <option value="Nurse">Nurse</option>
+        <option value="Receptionist">Receptionist</option>
+        <option value="Laboratory Staff">Laboratory Staff</option>
         <option value="Pharmacist">Pharmacist</option>
-        <option value="Out Patient">Out Patient</option>
+        <option value="Billing Staff">Billing Staff</option>
+        <option value="Medical Records Staff">Medical Records Staff</option>
+        <option value="Emergency Staff">Emergency Staff</option>
+        <option value="HR Manager">HR Manager</option>
       </select>
       <span class="select-arrow-icon" aria-hidden="true">${ICONS.chevronDown}</span>
     </div>

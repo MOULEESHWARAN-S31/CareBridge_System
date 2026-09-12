@@ -207,17 +207,31 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     sessionStorage.removeItem('cb_auth_user');
     localStorage.removeItem('carebridge_user_role');
     localStorage.removeItem('carebridge_officer_name');
+    localStorage.removeItem('carebridge_user_district');
+    localStorage.removeItem('carebridge_registered_users');
     window.location.href = 'http://localhost:3000';
   };
 
+  // Helper to decode server-signed JWT claims
+  function parseJwt(tokenStr: string) {
+    try {
+      const base64Url = tokenStr.split('.')[1];
+      if (!base64Url) return null;
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  }
+
   // Strict Role-Based Authentication & Guard
   useEffect(() => {
-    // If user is accessing the login page, bypass route guard
-    if (window.location.pathname.startsWith('/login')) {
-      setIsAuthValid(true);
-      return;
-    }
-
     // 1. Check if token & user were passed via URL parameters (cross-origin port redirect from :3000)
     try {
       const urlParams = new URLSearchParams(window.location.search);
@@ -225,9 +239,17 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const paramToken = urlParams.get('token') || hashParams.get('token');
       const paramUser = urlParams.get('user') || hashParams.get('user');
 
-      if (paramToken && paramUser) {
+      if (paramToken) {
         localStorage.setItem('cb_auth_token', paramToken);
+        sessionStorage.setItem('cb_auth_token', paramToken);
+      }
+      if (paramUser) {
         localStorage.setItem('cb_auth_user', paramUser);
+        sessionStorage.setItem('cb_auth_user', paramUser);
+      }
+
+      // Immediately sanitize token/user from URL (Requirement 5)
+      if (paramToken || paramUser || window.location.search.includes('token=')) {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     } catch (e) {
@@ -237,33 +259,40 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const token = localStorage.getItem('cb_auth_token') || sessionStorage.getItem('cb_auth_token');
     const userStr = localStorage.getItem('cb_auth_user') || sessionStorage.getItem('cb_auth_user');
 
-    if (!token || !userStr) {
-      // Unauthenticated -> redirect to Common Login
+    if (!token) {
+      // Unauthenticated -> redirect to Common Login (Requirement 8)
       window.location.href = 'http://localhost:3000';
       return;
     }
 
-    try {
-      const user = JSON.parse(userStr);
-      // Strict role check: GOVERNMENT only
-      if (user.role !== 'GOVERNMENT') {
-        setAccessDeniedMessage(
-          `Access Denied: Government Dashboard requires the GOVERNMENT role. Your current role is "${user.role}". Administrators must use the Admin Dashboard at port 5173.`
-        );
-        return;
-      }
+    // Requirement 3: Role must be server-authoritative from JWT
+    const jwtPayload = parseJwt(token);
+    const serverRole = (jwtPayload?.role || '').toUpperCase();
 
-      if (user.full_name) {
-        setOfficerName(user.full_name);
-      }
-      if (user.district) {
-        setUserDistrict(user.district);
-        setDistrictName(user.district);
-      }
-      setIsAuthValid(true);
+    let user: any = null;
+    try {
+      user = userStr ? JSON.parse(userStr) : jwtPayload;
     } catch {
-      window.location.href = 'http://localhost:3000';
+      user = jwtPayload;
     }
+
+    // Requirement 4: Strict role check: GOVERNMENT only. Block ADMIN or unauthorized roles with Access Denied.
+    if (serverRole !== 'GOVERNMENT') {
+      setAccessDeniedMessage(
+        `Access Denied: Government Dashboard requires the GOVERNMENT role. Your current server-authenticated role is "${serverRole || user?.role || 'UNKNOWN'}". Administrators must use the Admin Dashboard at port 5173.`
+      );
+      setIsAuthValid(false);
+      return;
+    }
+
+    if (jwtPayload?.name || user?.full_name || user?.name) {
+      setOfficerName(jwtPayload?.name || user?.full_name || user?.name);
+    }
+    if (jwtPayload?.district || user?.district) {
+      setUserDistrict(jwtPayload?.district || user?.district);
+      setDistrictName(jwtPayload?.district || user?.district);
+    }
+    setIsAuthValid(true);
   }, []);
 
   // Live Data Loading with Fallback to Mock Data

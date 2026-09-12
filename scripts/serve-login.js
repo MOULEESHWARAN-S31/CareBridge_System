@@ -7,7 +7,9 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = 3000;
-const PUBLIC_DIR = path.resolve(__dirname, '..', 'Login');
+const PUBLIC_DIR = fs.existsSync(path.resolve(__dirname, '..', 'LOGIN'))
+  ? path.resolve(__dirname, '..', 'LOGIN')
+  : path.resolve(__dirname, '..', 'Login');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=UTF-8',

@@ -4,7 +4,8 @@
   "description": "CareBridge Portal - Secure Staff Login",
   "scripts": {
     "start": "node ../scripts/serve-admin.js",
-    "dev": "node ../scripts/serve-admin.js"
+    "dev": "node ../scripts/serve-admin.js",
+    "build": "echo Admin Dashboard ready"
   },
   "keywords": [
     "hospital",

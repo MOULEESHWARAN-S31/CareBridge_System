@@ -1,6 +1,6 @@
 # CareBridge System — Unified Public Healthcare Platform
 
-[![Build & Integration Tests](https://img.shields.io/badge/Backend%20Tests-29%2F29%20Passing-brightgreen?style=flat-square)](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
+[![Build & Integration Tests](https://img.shields.io/badge/Backend%20Tests-77%2F77%20Passing-brightgreen?style=flat-square)](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
 [![Flutter Tests](https://img.shields.io/badge/Flutter%20Tests-120%2F120%20Passing-brightgreen?style=flat-square)](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
 [![Flutter Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen?style=flat-square)](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
 [![Node.js](https://img.shields.io/badge/Node.js-v18%2B%20%7C%20v24-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -16,40 +16,41 @@ The **CareBridge System** is an enterprise-grade, integrated public digital heal
 ## 1. System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                                 CAREBRIDGE SYSTEM ARCHITECTURE                          │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                     CAREBRIDGE SYSTEM ARCHITECTURE                                     │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
-   CareBridge Patient App        Common Login Portal        Admin Dashboard        Government Portal
-        (Port 8080)                  (Port 3000)              (Port 5173)             (Port 5174)
-   [Flutter Native & Web]       [HTML5 / CSS / Vanilla]     [Vanilla JS / CSS]       [React 19 Vite TS]
-            │                            │                          │                         │
-            │                            │                          │                         │
-            └────────────────────────────┴─────────────┬────────────┴─────────────────────────┘
-                                                       │
-                                                       │ JSON REST API / Bearer JWT
-                                                       ▼
-                                     ┌────────────────────────────────────┐
-                                     │     CareBridge Unified REST API    │
-                                     │     Node.js + Express (Port 5000)  │
-                                     │     RBAC Middleware & Auth Router  │
-                                     └─────────────────┬──────────────────┘
-                                                       │
-                                                       │ node-postgres (pg) Connection Pool
-                                                       ▼
-                                     ┌────────────────────────────────────┐
-                                     │       PostgreSQL Database          │
-                                     │       carebridge_db (Port 5432)    │
-                                     │       21 Normalized Relational     │
-                                     │       Tables & Authoritative Seeds │
-                                     └────────────────────────────────────┘
+   CareBridge Patient App         Common Login Portal         Admin Dashboard         Government Portal         Hospital Dashboard
+        (Port 8080)                   (Port 3000)               (Port 5173)              (Port 5174)                (Port 5175)
+   [Flutter Native & Web]        [HTML5 / CSS / Vanilla]      [Vanilla JS / CSS]        [React 19 Vite TS]         [React 19 Vite JS]
+            │                             │                           │                          │                          │
+            │                             │ POST /api/auth/login      │                          │                          │
+            └─────────────────────────────┴─────────────┬─────────────┴──────────────────────────┴──────────────────────────┘
+                                                        │
+                                                        │ JSON REST API / Bearer JWT
+                                                        ▼
+                                      ┌────────────────────────────────────┐
+                                      │     CareBridge Unified REST API    │
+                                      │     Node.js + Express (Port 5000)  │
+                                      │     RBAC Middleware & Auth Router  │
+                                      └─────────────────┬──────────────────┘
+                                                        │
+                                                        │ node-postgres (pg) Connection Pool
+                                                        ▼
+                                      ┌────────────────────────────────────┐
+                                      │       PostgreSQL Database          │
+                                      │       carebridge_db (Port 5432)    │
+                                      │       Normalized Relational Tables │
+                                      │       & Authoritative Live Seeds   │
+                                      └────────────────────────────────────┘
 ```
 
 ### Architectural Principles:
 1. **Centralized Data Access**: No frontend communicates directly with PostgreSQL. Every database operation traverses the **Node.js Express REST API (`backend/`)**.
 2. **Environment Isolation**: Database connection strings are supplied solely via `DATABASE_URL` in `.env` (never hard-coded).
 3. **Strict Role-Based Access Control (RBAC)**: Enforced both on the backend (`requireRole`) and across frontend route guards.
-4. **Resilient Offline Architecture**: Frontends feature seamless automatic fallbacks to localized datasets when disconnected.
+4. **Unified Single Common Login**: Port `3000` is the single exclusive authentication gateway for Admin, Government, and Hospital roles.
+5. **Resilient Offline Architecture**: Frontends feature seamless automatic fallbacks to localized datasets when disconnected.
 
 ---
 
@@ -57,16 +58,25 @@ The **CareBridge System** is an enterprise-grade, integrated public digital heal
 
 | Module | Directory | Port | Technology | Primary Role |
 |---|---|---|---|---|
-| **Common Login** | `Login/` | **3000** | HTML5, Vanilla JS, CSS3 | Single Entry Portal for staff and government officials; validates credentials against backend and redirects by role. |
-| **Admin Dashboard** | `admin-dashboard/` | **5173** | HTML5, ES Modules, CSS3, SheetJS | Master healthcare administration, hospital accreditation, pharmacy registration, staff accounts, bulk Excel imports. |
-| **Government Dashboard** | `Government-dashboard/` | **5174** | React 19, Vite, TypeScript, TailwindCSS | District & statewide monitoring, disease surveillance, outbreak cluster detection, AI prediction, emergency logistics. |
+| **Common Login** | `LOGIN/` | **3000** | HTML5, Vanilla JS, CSS3 | Single Entry Portal for staff and government officials; validates credentials against backend and redirects by role. |
+| **Admin Dashboard** | `ADMIN_DASHBOARD/` | **5173** | HTML5, ES Modules, CSS3, SheetJS | Master healthcare administration, hospital accreditation, pharmacy registration, staff accounts, bulk Excel imports. |
+| **Government Dashboard** | `GOVERNMENT_DASHBOARD/` | **5174** | React 19, Vite, TypeScript, TailwindCSS | District & statewide monitoring, disease surveillance, outbreak cluster detection, AI prediction, emergency logistics. |
+| **Hospital Dashboard** | `HOSPITAL_DASHBOARD/` | **5175** | React 19, Vite, Lucide, Recharts | Hospital Management System for Government District Hospital — Salem (`GDH-SALEM-01`) supporting 10 hospital roles. |
 | **CareBridge Patient App** | `CARE_BRIDGE/` | **8080** | Flutter 3.x, Dart | Citizen mobile & web app: ABHA integration, OPD booking, health records (FHIR), teleconsultation, emergency SOS. |
 | **Unified REST API** | `backend/` | **5000** | Node.js, Express, pg, bcrypt, JWT | Secure REST API handling authentication, CRUD operations, RBAC enforcement, transactional DB queries. |
-| **Relational Database** | `database/` | **5432** | PostgreSQL 16+ / 18 | Central database (`carebridge_db`) housing 21 normalized relational tables and authoritative seed datasets. |
+| **Relational Database** | `database/` | **5432** | PostgreSQL 16+ / 18 | Central database (`carebridge_db`) housing normalized relational tables and authoritative seed datasets. |
 
 ---
 
 ## 3. Key Capabilities per Module
+
+### 🏥 Hospital Management System (`HOSPITAL_DASHBOARD/`)
+- **Assigned Hospital**: Government District Hospital — Salem (`GDH-SALEM-01`), Tamil Nadu.
+- **10 Core Workflows**: Hospital Admin, Doctor, Nurse, Receptionist, Laboratory, Pharmacy, Billing, Medical Records, Emergency, HR.
+- **Unified Login Integration**: Integrated with Common Login (`:3000`) via secure token handoff (`history.replaceState()`); internal login redirected.
+- **Clinical & Operational Endpoints**: Real-time bed occupancy matrix, live patient search by ABHA/OP/Phone, doctor availability, appointment tracking.
+- **Cross-Dashboard Protection**: Strict 403 Forbidden gating preventing Admin/Government users from accessing hospital clinical routes.
+- **Bilingual Support**: Full English and Tamil (தமிழ்) localization with dark/light themes.
 
 ### 🏥 CareBridge Patient App (`CARE_BRIDGE/`)
 - **ABDM / ABHA Integration**: Complete mobile number lookup supporting individual, family, and new user ABHA registration workflows.
@@ -76,27 +86,36 @@ The **CareBridge System** is an enterprise-grade, integrated public digital heal
 - **Prescription Medicine Ordering**: 1-click pharmacy order submission from digital prescriptions.
 - **Multilingual Support**: Real-time localization in **English**, **Tamil (தமிழ்)**, and **Hindi (हिंदी)**.
 
-### 🔐 Common Login Portal (`Login/`)
+### 🔐 Common Login Portal (`LOGIN/`)
 - **Zero-Bypass Security**: Connects directly to `POST http://localhost:5000/api/auth/login`. Mock login bypasses have been removed.
 - **Smart Role-Based Redirection**:
-  - `ADMIN` $\rightarrow$ Redirects to Admin Dashboard (`http://localhost:5173`) with secure session handoff.
-  - `GOVERNMENT` $\rightarrow$ Redirects to Government Dashboard (`http://localhost:5174/dashboard`).
-  - `DOCTOR` / `MEDICAL_STORE` $\rightarrow$ Authenticates and displays appropriate portal routing.
-- **Evaluation Autofill**: One-click demo credential pills for fast evaluator testing.
+  - `ADMIN` $\rightarrow$ Redirects to Admin Dashboard (`http://localhost:5173`)
+  - `GOVERNMENT` $\rightarrow$ Redirects to Government Dashboard (`http://localhost:5174/dashboard`)
+  - `HOSPITAL_ADMIN` $\rightarrow$ Redirects to Hospital Admin Dashboard (`http://localhost:5175/admin/dashboard`)
+  - `DOCTOR` $\rightarrow$ Redirects to Doctor Dashboard (`http://localhost:5175/doctor/dashboard`)
+  - `NURSE` $\rightarrow$ Redirects to Nurse Dashboard (`http://localhost:5175/nurse/dashboard`)
+  - `RECEPTIONIST` $\rightarrow$ Redirects to Receptionist Dashboard (`http://localhost:5175/receptionist/dashboard`)
+  - `LAB_STAFF` $\rightarrow$ Redirects to Lab Dashboard (`http://localhost:5175/lab/dashboard`)
+  - `PHARMACIST` $\rightarrow$ Redirects to Pharmacy Dashboard (`http://localhost:5175/pharmacy/dashboard`)
+  - `BILLING_STAFF` $\rightarrow$ Redirects to Billing Dashboard (`http://localhost:5175/billing/dashboard`)
+  - `RECORDS_STAFF` $\rightarrow$ Redirects to Records Dashboard (`http://localhost:5175/records/dashboard`)
+  - `EMERGENCY_STAFF` $\rightarrow$ Redirects to Emergency Dashboard (`http://localhost:5175/emergency/dashboard`)
+  - `HR_MANAGER` $\rightarrow$ Redirects to HR Dashboard (`http://localhost:5175/hr/dashboard`)
+- **Evaluation Autofill**: One-click demo credential pills for fast evaluator testing across all 12 platform roles.
 
-### ⚙️ Master Admin Dashboard (`admin-dashboard/`)
-- **Healthcare Facility Accreditation**: Add, verify, and monitor government and private hospitals, primary health centers (PHCs), and community health centers (CHCs).
+### ⚙️ Master Admin Dashboard (`ADMIN_DASHBOARD/`)
+- **Healthcare Facility Accreditation**: Add, verify, and monitor government and private hospitals, PHCs, and CHCs.
 - **Medical Store & Pharmacy Management**: License verification, pharmacy directory, and medicine stock levels.
-- **User Account Management**: Admin-only creation of government officers, doctors, and pharmacy managers with bcrypt password hashing.
+- **User Account Management**: Admin-only creation of government officers, doctors, and hospital staff.
 - **Bulk Import Engine**: SheetJS/XLSX workbook bulk ingestion for hospitals, pharmacies, doctors, and inventory.
 - **Full Audit Logging**: Tracks administrative actions with timestamps, IP tracking, and change descriptions.
 
-### 🏛️ Government Public Health Dashboard (`Government-dashboard/`)
+### 🏛️ Government Public Health Dashboard (`GOVERNMENT_DASHBOARD/`)
 - **District Healthcare Index**: Salem, Chennai, Coimbatore, Madurai, Tiruchirappalli health metrics.
-- **Epidemic & Disease Surveillance**: Real-time tracking of Dengue, Typhoid, Malaria, and Influenza clusters with alert resolution workflows.
-- **AI Epidemic Prediction Engine**: Predictive risk modeling calculating 7-day projected case trajectories and confidence intervals.
-- **Hospital Bed & ICU Matrix**: Live tracking of general, ICU, pediatric, and ventilator bed occupancy across all state facilities.
-- **Strict Role Enforcement**: Exclusively accessible by the `GOVERNMENT` role; blocks unauthorized roles with audit logging.
+- **Epidemic & Disease Surveillance**: Real-time tracking of Dengue, Typhoid, Malaria, and Influenza clusters.
+- **AI Epidemic Prediction Engine**: Predictive risk modeling calculating 7-day projected case trajectories.
+- **Hospital Bed & ICU Matrix**: Live tracking of general, ICU, pediatric, and ventilator bed occupancy.
+- **Strict Role Enforcement**: Exclusively accessible by the `GOVERNMENT` role; blocks unauthorized roles.
 
 ---
 
@@ -105,10 +124,18 @@ The **CareBridge System** is an enterprise-grade, integrated public digital heal
 | Portal | Role | Username / Identifier | Password | Access URL |
 |---|---|---|---|---|
 | **Common Login** | Entrypoint | *(Any valid user)* | *(User password)* | [http://localhost:3000](http://localhost:3000) |
-| **Admin Dashboard** | `ADMIN` | `admin@carebridge.local` *(or `admin`)* | `Admin@123` *(or `moulee2077`)* | [http://localhost:5173](http://localhost:5173) |
+| **Admin Dashboard** | `ADMIN` | `admin@carebridge.local` *(or `admin`)* | `Admin@123` | [http://localhost:5173](http://localhost:5173) |
 | **Government Dashboard** | `GOVERNMENT` | `government@carebridge.local` *(or `gov_salem`)* | `Gov@123` | [http://localhost:5174/dashboard](http://localhost:5174/dashboard) |
-| **Doctor Portal** | `DOCTOR` | `dr.sundararajan@carebridge.local` | `Doctor@123` | Backend `/api/doctors` |
-| **Medical Store** | `MEDICAL_STORE` | `pharmacy.salem@carebridge.local` | `Store@123` | Backend `/api/medical-stores` |
+| **Hospital Administrator** | `HOSPITAL_ADMIN` | `hospital.admin@carebridge.local` | `Admin@123` | [http://localhost:5175/admin/dashboard](http://localhost:5175/admin/dashboard) |
+| **Doctor** | `DOCTOR` | `doctor@carebridge.local` | `Doctor@123` | [http://localhost:5175/doctor/dashboard](http://localhost:5175/doctor/dashboard) |
+| **Nurse** | `NURSE` | `nurse@carebridge.local` | `Nurse@123` | [http://localhost:5175/nurse/dashboard](http://localhost:5175/nurse/dashboard) |
+| **Receptionist** | `RECEPTIONIST` | `receptionist@carebridge.local` | `Recep@123` | [http://localhost:5175/receptionist/dashboard](http://localhost:5175/receptionist/dashboard) |
+| **Laboratory Staff** | `LAB_STAFF` | `lab@carebridge.local` | `Lab@123` | [http://localhost:5175/lab/dashboard](http://localhost:5175/lab/dashboard) |
+| **Pharmacist** | `PHARMACIST` | `pharmacist@carebridge.local` | `Pharm@123` | [http://localhost:5175/pharmacy/dashboard](http://localhost:5175/pharmacy/dashboard) |
+| **Billing Staff** | `BILLING_STAFF` | `billing@carebridge.local` | `Bill@123` | [http://localhost:5175/billing/dashboard](http://localhost:5175/billing/dashboard) |
+| **Medical Records Staff** | `RECORDS_STAFF` | `records@carebridge.local` | `Record@123` | [http://localhost:5175/records/dashboard](http://localhost:5175/records/dashboard) |
+| **Emergency Staff** | `EMERGENCY_STAFF` | `emergency@carebridge.local` | `Emerg@123` | [http://localhost:5175/emergency/dashboard](http://localhost:5175/emergency/dashboard) |
+| **HR Manager** | `HR_MANAGER` | `hr@carebridge.local` | `Hr@123` | [http://localhost:5175/hr/dashboard](http://localhost:5175/hr/dashboard) |
 
 ### ABHA Mobile Verification Test Scenarios
 
@@ -163,34 +190,39 @@ Run the installation across modules:
 ```bash
 npm install
 npm --prefix backend install
-npm --prefix admin-dashboard install
-npm --prefix Government-dashboard install
+npm --prefix ADMIN_DASHBOARD install
+npm --prefix GOVERNMENT_DASHBOARD install
+npm --prefix HOSPITAL_DASHBOARD install
 cd CARE_BRIDGE && flutter pub get && cd ..
 ```
 
 ### Step 4: Initialize & Seed PostgreSQL Database
-Run the automated database setup script to create `carebridge_db`, apply the 21-table schema, and populate seed records:
+Run the automated database setup script to create `carebridge_db`, apply the schema, and populate all seed records (including 10 hospital roles & GDH-SALEM-01 staff):
 ```bash
 npm --prefix backend run db:setup
+node backend/scripts/seed_hospital_roles.js
 ```
 
 ---
 
 ## 7. Running the Applications
 
-### Option A: Launch All Web Services with ONE Command (Recommended)
+### Option A: Launch All Five Web Services with ONE Command (Recommended)
 From the repository root:
 ```bash
 npm start
 # or
 npm run dev
+# or
+npm run dev:all
 ```
 
-This starts all services concurrently with color-coded terminal logs:
+This starts all five services concurrently with color-coded terminal logs:
 - **`[BACKEND]`** running on [http://localhost:5000](http://localhost:5000)
 - **`[LOGIN]`** running on [http://localhost:3000](http://localhost:3000)
 - **`[ADMIN]`** running on [http://localhost:5173](http://localhost:5173)
 - **`[GOVERNMENT]`** running on [http://localhost:5174](http://localhost:5174)
+- **`[HOSPITAL]`** running on [http://localhost:5175](http://localhost:5175)
 
 ### Option B: Launch the CareBridge Flutter Patient App
 In a separate terminal:
@@ -209,6 +241,7 @@ Open [http://localhost:8080](http://localhost:8080) to test the Patient App.
 | `npm run dev:login` | Starts the Common Login server on `:3000` |
 | `npm run dev:admin` | Starts the Admin Dashboard server on `:5173` |
 | `npm run dev:gov` | Starts the Government Dashboard Vite dev server on `:5174` |
+| `npm run dev:hospital` | Starts the Hospital Dashboard Vite dev server on `:5175` |
 | `npm run dev:carebridge` | Launches the Flutter Patient Web App on `:8080` |
 
 ---
@@ -217,7 +250,7 @@ Open [http://localhost:8080](http://localhost:8080) to test the Patient App.
 
 The CareBridge System includes comprehensive test suites across both the Node.js backend and the Flutter client.
 
-### 1. Backend Automated Integration Tests (29/29 Passed)
+### 1. Backend Automated Integration Tests (77/77 Passed)
 ```bash
 npm --prefix backend test
 # or from root:
@@ -225,17 +258,20 @@ npm run test:backend
 ```
 **Test Coverage Includes**:
 - Health check endpoint verification (`GET /health` $\rightarrow$ 200 OK)
-- Authentication negative tests (bad password, missing body)
+- Authentication negative tests (bad password, missing body, unauthorized access)
 - Role-based access control (Government blocked from admin users table with 403 Forbidden)
 - Admin user operations (`GET /api/users` $\rightarrow$ 200 OK)
 - All 6 Mandatory ABHA test phone numbers verification
 - Hospital creation, distance calculation, and public discovery
 - Doctor appointment booking and ID generation
 - Medical store creation and prescription medicine ordering
+- **Hospital Roles Authentication**: Full backend validation of all 10 Hospital roles (`HOSPITAL_ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`, `LAB_STAFF`, `PHARMACIST`, `BILLING_STAFF`, `RECORDS_STAFF`, `EMERGENCY_STAFF`, `HR_MANAGER`) with verified claims (`role`, `hospitalId = 'GDH-SALEM-01'`)
+- **Hospital Role Enforcement**: Unauthorized roles blocked with HTTP 403 Forbidden
+- **Hospital Clinical Endpoints**: Live metrics for `/api/hospital/overview`, `/api/hospital/beds`, `/api/hospital/patients/search`
 
 ### 2. Flutter Patient App Automated Tests (120/120 Passed)
 ```bash
-npm --prefix CARE_BRIDGE test
+cd CARE_BRIDGE && flutter test
 # or from root:
 npm run test:carebridge
 ```

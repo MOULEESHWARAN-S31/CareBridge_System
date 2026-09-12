@@ -19,11 +19,65 @@ export const DEMO_CREDENTIALS = {
     role: 'GOVERNMENT',
     label: 'Gov Health Officer'
   },
-  clinicalOfficer: {
-    username: 'EMP-8820',
-    password: 'Password@123',
-    role: 'GOVERNMENT',
-    label: 'Clinical Doctor'
+  hospitalAdmin: {
+    username: 'hospital.admin@carebridge.local',
+    password: 'Hospital@123',
+    role: 'HOSPITAL_ADMIN',
+    label: 'Hospital Administrator'
+  },
+  doctor: {
+    username: 'doctor@carebridge.local',
+    password: 'Doctor@123',
+    role: 'DOCTOR',
+    label: 'Doctor'
+  },
+  nurse: {
+    username: 'nurse@carebridge.local',
+    password: 'Nurse@123',
+    role: 'NURSE',
+    label: 'Nurse'
+  },
+  receptionist: {
+    username: 'reception@carebridge.local',
+    password: 'Reception@123',
+    role: 'RECEPTIONIST',
+    label: 'Receptionist'
+  },
+  pharmacist: {
+    username: 'pharmacy@carebridge.local',
+    password: 'Pharmacy@123',
+    role: 'PHARMACIST',
+    label: 'Pharmacist'
+  },
+  labStaff: {
+    username: 'lab@carebridge.local',
+    password: 'Lab@123',
+    role: 'LAB_STAFF',
+    label: 'Laboratory Staff'
+  },
+  billingStaff: {
+    username: 'billing@carebridge.local',
+    password: 'Billing@123',
+    role: 'BILLING_STAFF',
+    label: 'Billing Staff'
+  },
+  recordsStaff: {
+    username: 'records@carebridge.local',
+    password: 'Records@123',
+    role: 'RECORDS_STAFF',
+    label: 'Medical Records Staff'
+  },
+  emergencyStaff: {
+    username: 'emergency@carebridge.local',
+    password: 'Emergency@123',
+    role: 'EMERGENCY_STAFF',
+    label: 'Emergency Staff'
+  },
+  hrManager: {
+    username: 'hr@carebridge.local',
+    password: 'HR@123',
+    role: 'HR_MANAGER',
+    label: 'HR Manager'
   }
 };
 
@@ -90,7 +144,7 @@ export async function authenticateUser(credentials) {
     console.error('[AUTH ERROR] Could not connect to backend:', err);
     return {
       success: false,
-      errorMessage: 'Unable to connect to CareBridge server. Please start the backend and try again.'
+      errorMessage: 'Unable to connect to CareBridge server'
     };
   }
 }

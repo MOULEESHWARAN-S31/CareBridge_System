@@ -27,6 +27,7 @@ function App() {
     <HealthDataProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<Login />} />
           
           {/* Main Dashboard Layout */}
@@ -65,7 +66,7 @@ function App() {
             <Route path="administration" element={<Administration />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
     </HealthDataProvider>

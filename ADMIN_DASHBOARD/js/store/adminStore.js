@@ -55,6 +55,9 @@ class AdminStore {
     // Toast notification
     this.toast = null;
 
+    // Feature-level offline mock data indicator
+    this.isOfflineMockData = false;
+
     this.listeners = new Set();
   }
 
@@ -188,9 +191,12 @@ class AdminStore {
         }
       }
 
+      this.isOfflineMockData = false;
       this.notify();
     } catch (err) {
       console.warn('Backend API synchronization failed, using local masterData fallback:', err);
+      this.isOfflineMockData = true;
+      this.notify();
     }
   }
 

@@ -141,6 +141,19 @@ export function createLoginCard(onForgotPasswordClick) {
 
       if (result.success) {
         const userRole = (result.user.role || '').toUpperCase();
+        const HOSPITAL_REDIRECTS = {
+          HOSPITAL_ADMIN: { path: '/admin/dashboard', label: 'Hospital Administrator' },
+          DOCTOR: { path: '/doctor/dashboard', label: 'Doctor' },
+          NURSE: { path: '/nurse/dashboard', label: 'Nurse' },
+          RECEPTIONIST: { path: '/receptionist/dashboard', label: 'Receptionist' },
+          LAB_STAFF: { path: '/lab/dashboard', label: 'Laboratory Staff' },
+          PHARMACIST: { path: '/pharmacy/dashboard', label: 'Pharmacist' },
+          BILLING_STAFF: { path: '/billing/dashboard', label: 'Billing Staff' },
+          RECORDS_STAFF: { path: '/records/dashboard', label: 'Medical Records Staff' },
+          EMERGENCY_STAFF: { path: '/emergency/dashboard', label: 'Emergency Staff' },
+          HR_MANAGER: { path: '/hr/dashboard', label: 'HR Manager' }
+        };
+
         if (userRole === 'ADMIN') {
           showAlert(`Authenticated as Administrator (${result.user.name || result.user.username}). Redirecting to Admin Dashboard...`, 'success');
           loginButtonComp.setDisabled(true);
@@ -155,6 +168,14 @@ export function createLoginCard(onForgotPasswordClick) {
           setTimeout(() => {
             window.location.href = redirectUrl;
           }, 350);
+        } else if (HOSPITAL_REDIRECTS[userRole]) {
+          const target = HOSPITAL_REDIRECTS[userRole];
+          showAlert(`Authenticated as ${target.label} (${result.user.name || result.user.username}). Redirecting to Hospital Dashboard...`, 'success');
+          loginButtonComp.setDisabled(true);
+          const redirectUrl = `http://localhost:5175${target.path}?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 350);
         } else {
           showAlert(`Access Denied: Role '${result.user.role}' is not authorized.`, 'error');
           loginButtonComp.setLoading(false);
@@ -165,7 +186,7 @@ export function createLoginCard(onForgotPasswordClick) {
         passInput.focus();
       }
     } catch (err) {
-      showAlert('Unable to connect to CareBridge server. Please start the backend and try again.', 'error');
+      showAlert('Unable to connect to CareBridge server', 'error');
       loginButtonComp.setLoading(false);
     }
   });
@@ -178,9 +199,23 @@ export function createLoginCard(onForgotPasswordClick) {
       passInput.value = creds.password;
       const roleSelect = form.querySelector('#role-select');
       if (roleSelect) {
-        if (creds.role === 'ADMIN') roleSelect.value = 'Administrator';
-        else if (creds.role === 'GOVERNMENT') roleSelect.value = 'Government';
-        else roleSelect.value = 'Doctor';
+        const roleOptionMap = {
+          ADMIN: 'Administrator',
+          GOVERNMENT: 'Government',
+          HOSPITAL_ADMIN: 'Hospital Administrator',
+          DOCTOR: 'Doctor',
+          NURSE: 'Nurse',
+          RECEPTIONIST: 'Receptionist',
+          LAB_STAFF: 'Laboratory Staff',
+          PHARMACIST: 'Pharmacist',
+          BILLING_STAFF: 'Billing Staff',
+          RECORDS_STAFF: 'Medical Records Staff',
+          EMERGENCY_STAFF: 'Emergency Staff',
+          HR_MANAGER: 'HR Manager'
+        };
+        if (roleOptionMap[creds.role]) {
+          roleSelect.value = roleOptionMap[creds.role];
+        }
       }
       hideAlert();
       clearFieldError(employeeIdGroup);

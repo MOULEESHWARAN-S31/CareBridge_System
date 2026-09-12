@@ -101,4 +101,11 @@ router.get('/notifications', alertCampController.getNotifications);
 // 14. STATS & KPIS
 router.get('/stats', statsController.getStats);
 
+// 15. HOSPITAL CLINICAL OPERATIONS (HOSPITAL_DASHBOARD)
+const hospitalClinicalController = require('../controllers/hospitalClinicalController');
+router.get('/hospital/overview', hospitalClinicalController.getHospitalOverview);
+router.get('/hospital/patients/search', hospitalClinicalController.searchHospitalPatients);
+router.get('/hospital/beds', hospitalClinicalController.getHospitalBeds);
+router.put('/hospital/beds', authenticateToken, requireRole(['ADMIN', 'HOSPITAL_ADMIN', 'DOCTOR', 'NURSE']), hospitalClinicalController.updateHospitalBeds);
+
 module.exports = router;
