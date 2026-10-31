@@ -2,6 +2,67 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { query } = require('../config/db');
 const { JWT_SECRET } = require('../middleware/auth');
+const { isStateScope } = require('../middleware/governmentScope');
+const crypto = require('crypto');
+
+const handoffCodes = new Map();
+const HANDOFF_TTL_MS = 60 * 1000;
+const HANDOFF_DESTINATIONS = {
+  admin: ['ADMIN'],
+  government: ['GOVERNMENT'],
+  hospital: [
+    'HOSPITAL_ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST', 'LAB_STAFF',
+    'PHARMACIST', 'BILLING_STAFF', 'RECORDS_STAFF', 'EMERGENCY_STAFF', 'HR_MANAGER'
+  ]
+};
+
+function pruneHandoffCodes() {
+  const now = Date.now();
+  for (const [code, handoff] of handoffCodes) {
+    if (handoff.expiresAt <= now) handoffCodes.delete(code);
+  }
+}
+
+async function createHandoff(req, res) {
+  const { token, user, destination } = req.body || {};
+  const roles = HANDOFF_DESTINATIONS[destination];
+  if (!token || !roles) {
+    return res.status(400).json({ error: 'A valid destination and authentication token are required.' });
+  }
+
+  let payload;
+  try {
+    payload = jwt.verify(token, JWT_SECRET);
+  } catch {
+    return res.status(401).json({ error: 'Authentication token is invalid or expired.' });
+  }
+
+  if (!roles.includes(String(payload.role || '').toUpperCase())) {
+    return res.status(403).json({ error: 'The authenticated role cannot access this destination.' });
+  }
+
+  pruneHandoffCodes();
+  const code = crypto.randomBytes(32).toString('base64url');
+  handoffCodes.set(code, {
+    token,
+    user: user && typeof user === 'object' ? user : null,
+    destination,
+    expiresAt: Date.now() + HANDOFF_TTL_MS
+  });
+  return res.json({ code, expiresIn: HANDOFF_TTL_MS / 1000 });
+}
+
+async function exchangeHandoff(req, res) {
+  const { code, destination } = req.body || {};
+  const handoff = handoffCodes.get(code);
+  if (!handoff || handoff.expiresAt <= Date.now() || handoff.destination !== destination) {
+    if (handoff?.expiresAt <= Date.now()) handoffCodes.delete(code);
+    return res.status(401).json({ error: 'Authentication handoff is invalid, expired, or already used.' });
+  }
+
+  handoffCodes.delete(code);
+  return res.json({ token: handoff.token, user: handoff.user });
+}
 
 async function login(req, res, next) {
   try {
@@ -73,6 +134,10 @@ async function login(req, res, next) {
       district: userRow.district,
       hospitalId: userRow.hospital_id || 'GDH-SALEM-01'
     };
+    if (userRow.role_name === 'GOVERNMENT') {
+      tokenPayload.workspace = isStateScope(userRow) ? 'STATE_ADMIN' : 'DISTRICT_ADMIN';
+      tokenPayload.allowedWorkspaces = [tokenPayload.workspace];
+    }
 
     const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '24h' });
 
@@ -105,6 +170,8 @@ async function getCurrentUser(req, res) {
 
 module.exports = {
   login,
+  createHandoff,
+  exchangeHandoff,
   logout,
   getCurrentUser
 };

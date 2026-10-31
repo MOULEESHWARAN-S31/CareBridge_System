@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { 
   DISTRICTS_DATA,
@@ -18,7 +18,6 @@ import {
   MOCK_EMERGENCY_SUPPLIES,
   MOCK_MEDICINES,
   DISTRICT_SUMMARIES,
-  TRANSLATIONS,
   INITIAL_REGISTERED_USERS,
   type UserRole,
   type UserAccount,
@@ -39,10 +38,16 @@ import {
   type EmergencySupplyItem,
   type MedicineItem,
   type FacilitySupplyBreakdown,
-  type DistrictSummary
+  type DistrictSummary,
+  MOCK_DISTRICT_REQUESTS,
+  MOCK_CITIZEN_CAMP_REQUESTS,
+  MOCK_FOLLOW_UP_PROGRAMS,
+  MOCK_PUBLIC_HEALTH_NOTICES,
+  type DistrictResourceRequest,
+  type CitizenCampRequest,
+  type FollowUpProgramItem,
+  type PublicHealthNotice
 } from '../data/mockData';
-
-export type LanguageCode = 'en' | 'ta' | 'hi';
 
 interface HealthDataContextType {
   // Role & Session State
@@ -58,6 +63,17 @@ interface HealthDataContextType {
   userDistrict: string;
   setUserDistrict: (district: string) => void;
 
+  // Workspaces (State Admin vs District Admin)
+  userWorkspace: 'STATE_ADMIN' | 'DISTRICT_ADMIN';
+  setUserWorkspace: (ws: 'STATE_ADMIN' | 'DISTRICT_ADMIN') => void;
+  canAccessStateWorkspace: boolean;
+  districtRequests: DistrictResourceRequest[];
+  updateDistrictRequestStatus: (id: string, status: DistrictResourceRequest['status'], reviewNotes?: string) => void;
+  citizenCampRequests: CitizenCampRequest[];
+  updateCitizenCampRequestStatus: (id: string, status: CitizenCampRequest['status']) => void;
+  followUpPrograms: FollowUpProgramItem[];
+  publicNotices: PublicHealthNotice[];
+
   // Location & Filters
   stateName: string;
   setStateName: (name: string) => void;
@@ -69,9 +85,6 @@ interface HealthDataContextType {
   // Preferences & Demo
   demoMode: boolean;
   setDemoMode: (enabled: boolean) => void;
-  language: LanguageCode;
-  setLanguage: (lang: LanguageCode) => void;
-  t: (key: keyof typeof TRANSLATIONS.en) => string;
 
   // User Management
   registeredUsers: UserAccount[];
@@ -147,15 +160,73 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return localStorage.getItem('carebridge_user_district') || 'Salem';
   });
   const [stateName, setStateName] = useState('Tamil Nadu');
-  const [districtName, setDistrictName] = useState<string>(() => {
+  const [districtName, setDistrictNameState] = useState<string>(() => {
     return localStorage.getItem('carebridge_user_district') || 'Salem';
   });
+  const [canAccessStateWorkspace, setCanAccessStateWorkspace] = useState(false);
+  const handoffStarted = useRef(false);
+
+  // Workspaces: State Admin vs District Admin
+  const [userWorkspace, setUserWorkspaceState] = useState<'STATE_ADMIN' | 'DISTRICT_ADMIN'>(() => {
+    return 'DISTRICT_ADMIN';
+  });
+
+  const setUserWorkspace = (ws: 'STATE_ADMIN' | 'DISTRICT_ADMIN') => {
+    if (ws === 'STATE_ADMIN' && !canAccessStateWorkspace) return;
+    setUserWorkspaceState(ws);
+    localStorage.setItem('carebridge_user_workspace', ws);
+    if (ws === 'STATE_ADMIN') {
+      setDistrictNameState('ALL');
+    } else {
+      setDistrictNameState(userDistrict && userDistrict !== 'ALL' ? userDistrict : 'Salem');
+    }
+  };
+
+  const setDistrictName = (name: string) => {
+    if (!canAccessStateWorkspace && userDistrict && name !== userDistrict) return;
+    setDistrictNameState(name);
+  };
+
+  const [districtRequests, setDistrictRequests] = useState<DistrictResourceRequest[]>(() => {
+    try {
+      const saved = localStorage.getItem('carebridge_district_requests');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return MOCK_DISTRICT_REQUESTS;
+  });
+
+  const updateDistrictRequestStatus = (id: string, status: DistrictResourceRequest['status'], reviewNotes?: string) => {
+    setDistrictRequests(prev => {
+      const updated = prev.map(req => req.id === id ? { ...req, status, reviewNotes: reviewNotes || req.reviewNotes } : req);
+      localStorage.setItem('carebridge_district_requests', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const [citizenCampRequests, setCitizenCampRequests] = useState<CitizenCampRequest[]>(() => {
+    try {
+      const saved = localStorage.getItem('carebridge_citizen_camp_requests');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return MOCK_CITIZEN_CAMP_REQUESTS;
+  });
+
+  const updateCitizenCampRequestStatus = (id: string, status: CitizenCampRequest['status']) => {
+    setCitizenCampRequests(prev => {
+      const updated = prev.map(req => req.id === id ? { ...req, status } : req);
+      localStorage.setItem('carebridge_citizen_camp_requests', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const [followUpPrograms] = useState<FollowUpProgramItem[]>(MOCK_FOLLOW_UP_PROGRAMS);
+  const [publicNotices] = useState<PublicHealthNotice[]>(MOCK_PUBLIC_HEALTH_NOTICES);
   const [selectedFacilityId, setSelectedFacilityId] = useState<string | null>(null);
 
   // Synchronize districtName whenever userDistrict changes
   useEffect(() => {
     if (userDistrict && userDistrict !== 'ALL') {
-      setDistrictName(userDistrict);
+      setDistrictNameState(userDistrict);
     }
   }, [userDistrict]);
 
@@ -168,7 +239,6 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Settings
   const [demoMode, setDemoMode] = useState(true);
-  const [language, setLanguage] = useState<LanguageCode>('en');
 
   // Registered Users (Persisted)
   const [registeredUsers, setRegisteredUsers] = useState<UserAccount[]>(() => {
@@ -197,7 +267,19 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [allDiagnosticItems] = useState<DiagnosticItem[]>(DIAGNOSTICS_DATA);
   const [schemes] = useState<GovernmentScheme[]>(GOVERNMENT_SCHEMES_DATA);
   const [ruleAlerts, setRuleAlerts] = useState<RuleAlert[]>(RULE_ALERTS_DATA);
-  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(AUDIT_LOGS_DATA);
+  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('carebridge_audit_logs');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // Fall back to the bundled audit trail when stored data is unavailable.
+    }
+    return AUDIT_LOGS_DATA;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('carebridge_audit_logs', JSON.stringify(auditLogs));
+  }, [auditLogs]);
 
   // Logout Handler
   const logout = () => {
@@ -232,30 +314,47 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Strict Role-Based Authentication & Guard
   useEffect(() => {
-    // 1. Check if token & user were passed via URL parameters (cross-origin port redirect from :3000)
-    try {
+    if (handoffStarted.current) return;
+    handoffStarted.current = true;
+    const initializeAuthentication = async () => {
+      // 1. Exchange the short-lived handoff code before reading session state.
       const urlParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const handoffCode = urlParams.get('handoff') || hashParams.get('handoff');
       const paramToken = urlParams.get('token') || hashParams.get('token');
       const paramUser = urlParams.get('user') || hashParams.get('user');
 
-      if (paramToken) {
-        localStorage.setItem('cb_auth_token', paramToken);
-        sessionStorage.setItem('cb_auth_token', paramToken);
-      }
-      if (paramUser) {
-        localStorage.setItem('cb_auth_user', paramUser);
-        sessionStorage.setItem('cb_auth_user', paramUser);
+      if (handoffCode) {
+        try {
+          const handoffResponse = await fetch('http://localhost:5000/api/auth/handoff/exchange', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: handoffCode, destination: 'government' })
+          });
+          const handoff = await handoffResponse.json();
+          if (!handoffResponse.ok || !handoff.token) throw new Error(handoff.error || 'Secure login handoff failed.');
+          localStorage.setItem('cb_auth_token', handoff.token);
+          if (handoff.user) localStorage.setItem('cb_auth_user', JSON.stringify(handoff.user));
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (error) {
+          setAccessDeniedMessage(error instanceof Error ? error.message : 'Secure login handoff failed.');
+          return;
+        }
+      } else {
+        if (paramToken) {
+          localStorage.setItem('cb_auth_token', paramToken);
+          sessionStorage.setItem('cb_auth_token', paramToken);
+        }
+        if (paramUser) {
+          localStorage.setItem('cb_auth_user', paramUser);
+          sessionStorage.setItem('cb_auth_user', paramUser);
+        }
       }
 
       // Immediately sanitize token/user from URL (Requirement 5)
       if (paramToken || paramUser || window.location.search.includes('token=')) {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
-    } catch (e) {
-      console.error('Error parsing URL credentials:', e);
-    }
-
     const token = localStorage.getItem('cb_auth_token') || sessionStorage.getItem('cb_auth_token');
     const userStr = localStorage.getItem('cb_auth_user') || sessionStorage.getItem('cb_auth_user');
 
@@ -290,9 +389,18 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
     if (jwtPayload?.district || user?.district) {
       setUserDistrict(jwtPayload?.district || user?.district);
-      setDistrictName(jwtPayload?.district || user?.district);
+      setDistrictNameState(jwtPayload?.district || user?.district);
     }
-    setIsAuthValid(true);
+    const allowedWorkspaces = Array.isArray(jwtPayload?.allowedWorkspaces)
+      ? jwtPayload.allowedWorkspaces
+      : [jwtPayload?.workspace];
+    const stateAllowed = allowedWorkspaces.includes('STATE_ADMIN');
+    setCanAccessStateWorkspace(stateAllowed);
+    setUserWorkspaceState(stateAllowed && jwtPayload?.workspace === 'STATE_ADMIN' ? 'STATE_ADMIN' : 'DISTRICT_ADMIN');
+      setIsAuthValid(true);
+    };
+    initializeAuthentication();
+    return undefined;
   }, []);
 
   // Live Data Loading with Fallback to Mock Data
@@ -409,11 +517,6 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     status: f.medicineStatus
   }));
 
-  // Translation helper
-  const t = (key: keyof typeof TRANSLATIONS.en): string => {
-    const langDict = TRANSLATIONS[language] || TRANSLATIONS.en;
-    return (langDict as Record<string, string>)[key] || TRANSLATIONS.en[key] || String(key);
-  };
 
   const markNotificationAsRead = (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
@@ -570,6 +673,12 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   return (
     <HealthDataContext.Provider value={{
       userRole, setUserRole,
+      userWorkspace, setUserWorkspace,
+      canAccessStateWorkspace,
+      districtRequests, updateDistrictRequestStatus,
+      citizenCampRequests, updateCitizenCampRequestStatus,
+      followUpPrograms,
+      publicNotices,
       officerName, setOfficerName,
       officerDesignation,
       isOfflineMock,
@@ -579,8 +688,6 @@ export const HealthDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       districtName, setDistrictName,
       selectedFacilityId, setSelectedFacilityId,
       demoMode, setDemoMode,
-      language, setLanguage,
-      t,
       registeredUsers,
       createRegisteredUser,
       districts,

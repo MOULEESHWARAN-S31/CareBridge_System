@@ -7,7 +7,7 @@ import {
   FileText, CheckCircle2, Clock, User, Bed, Stethoscope
 } from 'lucide-react';
 import { PATIENTS, DOCTORS, PRESCRIPTIONS, LAB_ORDERS, REFERRALS } from '../data/mockData';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
 
 export default function PatientProfile() {
   const { id } = useParams();

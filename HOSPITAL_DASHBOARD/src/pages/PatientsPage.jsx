@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRoleNav } from '../hooks/useRoleNav';
 import { Search, Eye } from 'lucide-react';
 import { PATIENTS, DEPARTMENTS } from '../data/mockData';
-import PatientSearchGateway from '../components/PatientSearchGateway';
+import PatientSearchGateway from '../components/common/PatientSearchGateway';
 
 const STATUS_FILTERS = [
   'All', 'Waiting', 'Under Consultation', 'Admitted',

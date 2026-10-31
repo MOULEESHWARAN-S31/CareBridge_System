@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:care_bridge/app/theme/app_colors.dart';
 import 'package:care_bridge/app/theme/app_dimensions.dart';
 import 'package:care_bridge/app/theme/app_text_styles.dart';
+import 'package:care_bridge/core/localization/app_localizations.dart';
 import 'package:care_bridge/shared/widgets/care_bridge_button.dart';
 import 'package:care_bridge/shared/widgets/care_bridge_state_widgets.dart';
 import 'booking_flow_wrapper.dart';
@@ -35,8 +36,10 @@ class _AppointmentDateTimeScreenState extends State<AppointmentDateTimeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final langCode = loc.locale.languageCode;
     final controller = BookingScope.of(context);
-    final doctorName = controller.selectedDoctor?.name ?? '';
+    final doctorName = controller.selectedDoctor?.getDisplayName(langCode) ?? controller.selectedDoctor?.name ?? '';
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -46,7 +49,7 @@ class _AppointmentDateTimeScreenState extends State<AppointmentDateTimeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Book Appointment'),
+        title: Text(loc.bookAppointmentTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: widget.onBack,
@@ -229,7 +232,7 @@ class _AppointmentDateTimeScreenState extends State<AppointmentDateTimeScreen> {
                 children: [
                   Expanded(
                     child: CareBridgeButton.outlined(
-                      label: 'Back',
+                      label: loc.back,
                       onPressed: widget.onBack,
                     ),
                   ),
@@ -237,7 +240,7 @@ class _AppointmentDateTimeScreenState extends State<AppointmentDateTimeScreen> {
                   Expanded(
                     flex: 2,
                     child: CareBridgeButton.primary(
-                      label: 'Review Summary',
+                      label: loc.summaryStep,
                       onPressed: (controller.selectedDate != null && controller.selectedSlot != null)
                           ? widget.onNext
                           : null,

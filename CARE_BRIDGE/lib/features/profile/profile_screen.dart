@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import '../../app/routes/app_routes.dart';
 import '../../app/theme/app_colors.dart';
@@ -5,6 +6,7 @@ import '../../app/theme/app_dimensions.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/localization/app_localizations.dart';
+import '../../core/localization/supported_locales.dart';
 import '../../core/utils/accessibility_utils.dart';
 import '../../shared/services/mock_data_service.dart';
 import '../../shared/widgets/care_bridge_button.dart';
@@ -16,7 +18,7 @@ import 'opd_card_dialog.dart';
 /// CareBridge Profile Screen
 ///
 /// Provides access to My ABHA Card with dynamic QR Code, OPD Card with download,
-/// Emergency Contacts management, and 2-option Language selector (Tamil & English).
+/// Emergency Contacts management, and complete 23-language multilingual selector.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -54,6 +56,176 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  void _showAllLanguagesSheet(
+    BuildContext context,
+    AuthenticationController authController,
+    String activeLang,
+  ) {
+    final loc = AppLocalizations.of(context);
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      builder: (modalContext) {
+        String searchQuery = '';
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filteredLocales = SupportedLocales.all.where((locale) {
+              final query = searchQuery.trim().toLowerCase();
+              if (query.isEmpty) return true;
+              final name = SupportedLocales.getLanguageName(locale).toLowerCase();
+              final native = SupportedLocales.getNativeName(locale).toLowerCase();
+              final english = SupportedLocales.getEnglishName(locale).toLowerCase();
+              return name.contains(query) || native.contains(query) || english.contains(query);
+            }).toList();
+
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.75,
+              maxChildSize: 0.95,
+              minChildSize: 0.5,
+              builder: (context, scrollController) {
+                return Column(
+                  children: [
+                    // Sheet Handle
+                    Container(
+                      margin: const EdgeInsets.only(top: 12.0, bottom: 8.0),
+                      width: 40.0,
+                      height: 4.0,
+                      decoration: BoxDecoration(
+                        color: AppColors.border,
+                        borderRadius: BorderRadius.circular(2.0),
+                      ),
+                    ),
+
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.translate_rounded, color: AppColors.primary),
+                          const SizedBox(width: 12.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  loc.languageSelectorTitle,
+                                  style: AppTextStyles.heading2.copyWith(fontSize: 18.0),
+                                ),
+                                Text(
+                                  '22 Indian Scheduled Languages + English',
+                                  style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Search input
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: loc.languageSearchHint,
+                          prefixIcon: const Icon(Icons.search_rounded, size: 20.0),
+                          filled: true,
+                          fillColor: AppColors.surface,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: const BorderSide(color: AppColors.borderLight),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: const BorderSide(color: AppColors.borderLight),
+                          ),
+                        ),
+                        onChanged: (val) {
+                          setModalState(() {
+                            searchQuery = val;
+                          });
+                        },
+                      ),
+                    ),
+
+                    const Divider(height: 1),
+
+                    // Languages List
+                    Expanded(
+                      child: ListView.separated(
+                        controller: scrollController,
+                        itemCount: filteredLocales.length,
+                        separatorBuilder: (context, index) => const Divider(height: 1, indent: 20),
+                        itemBuilder: (context, index) {
+                          final locale = filteredLocales[index];
+                          final code = locale.languageCode;
+                          final isSelected = activeLang == code;
+
+                          return ListTile(
+                            leading: Container(
+                              width: 38.0,
+                              height: 38.0,
+                              decoration: BoxDecoration(
+                                color: isSelected ? AppColors.primaryLight : AppColors.surface,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isSelected ? AppColors.primary : AppColors.borderLight,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  code.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 11.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: isSelected ? AppColors.primary : AppColors.textMuted,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            title: Text(
+                              SupportedLocales.getLanguageName(locale),
+                              style: AppTextStyles.body.copyWith(
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                              ),
+                            ),
+                            subtitle: SupportedLocales.isRtl(locale)
+                                ? const Text('Right-to-Left (RTL)', style: TextStyle(fontSize: 11.0, color: AppColors.textMuted))
+                                : null,
+                            trailing: isSelected
+                                ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                                : const Icon(Icons.radio_button_unchecked_rounded, color: AppColors.textMuted, size: 20.0),
+                            onTap: () {
+                              authController.setLocale(code);
+                              Navigator.of(context).pop();
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
@@ -72,7 +244,7 @@ class ProfileScreen extends StatelessWidget {
         : fallbackUser.mobileNumber;
 
     final currentLocaleCode = Localizations.localeOf(context).languageCode;
-    final activeLang = currentLocaleCode == 'ta' ? 'ta' : 'en';
+    final activeLang = currentLocaleCode;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -98,80 +270,38 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // My Health ID / My ABHA Card
                   ListTile(
                     key: const Key('profile_menu_my_abha_card'),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.space16,
-                      vertical: AppDimensions.space4,
-                    ),
-                    leading: Container(
-                      padding: const EdgeInsets.all(AppDimensions.space8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.qr_code_2_rounded, color: AppColors.primary, size: 24),
-                    ),
-                    title: Text(loc.myAbhaCardTitle, style: AppTextStyles.heading3.copyWith(fontSize: 15.5)),
-                    subtitle: Text(loc.myAbhaCardSubtitle, style: AppTextStyles.bodySmall),
+                    leading: const Icon(Icons.credit_card_rounded, color: AppColors.primary),
+                    title: Text(loc.myAbhaCardTitle, style: AppTextStyles.heading3.copyWith(fontSize: 15.0)),
+                    subtitle: Text(loc.myAbhaCardSubtitle, style: AppTextStyles.caption),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14.0, color: AppColors.textMuted),
-                    onTap: () => MyAbhaCardDialog.show(
-                      context,
-                      sessionService: authController.sessionService,
-                    ),
+                    onTap: () {
+                      MyAbhaCardDialog.show(context);
+                    },
                   ),
                   const Divider(height: 1, indent: 56),
-
-                  // OPD Card
                   ListTile(
                     key: const Key('profile_menu_opd_card'),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.space16,
-                      vertical: AppDimensions.space4,
-                    ),
-                    leading: Container(
-                      padding: const EdgeInsets.all(AppDimensions.space8),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.assignment_ind_rounded, color: AppColors.secondary, size: 24),
-                    ),
-                    title: Text(loc.opdCardTitle, style: AppTextStyles.heading3.copyWith(fontSize: 15.5)),
-                    subtitle: Text(loc.opdCardSubtitle, style: AppTextStyles.bodySmall),
+                    leading: const Icon(Icons.local_hospital_outlined, color: AppColors.secondary),
+                    title: Text(loc.opdCardTitle, style: AppTextStyles.heading3.copyWith(fontSize: 15.0)),
+                    subtitle: Text(loc.opdCardSubtitle, style: AppTextStyles.caption),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14.0, color: AppColors.textMuted),
-                    onTap: () => OpdCardDialog.show(
-                      context,
-                      sessionService: authController.sessionService,
-                    ),
+                    onTap: () {
+                      OpdCardDialog.show(context);
+                    },
                   ),
                   const Divider(height: 1, indent: 56),
-
-                  // Emergency Contacts
                   ListTile(
                     key: const Key('profile_menu_emergency_contacts'),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.space16,
-                      vertical: AppDimensions.space4,
-                    ),
-                    leading: Container(
-                      padding: const EdgeInsets.all(AppDimensions.space8),
-                      decoration: BoxDecoration(
-                        color: AppColors.emergency.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.contact_phone_rounded, color: AppColors.emergency, size: 24),
-                    ),
-                    title: Text(loc.emergencyContactsTitle, style: AppTextStyles.heading3.copyWith(fontSize: 15.5)),
-                    subtitle: Text(loc.emergencyContactsSubtitle, style: AppTextStyles.bodySmall),
+                    leading: const Icon(Icons.contact_phone_outlined, color: AppColors.emergency),
+                    title: Text(loc.emergencyContactsTitle, style: AppTextStyles.heading3.copyWith(fontSize: 15.0)),
+                    subtitle: Text(loc.emergencyContactsSubtitle, style: AppTextStyles.caption),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14.0, color: AppColors.textMuted),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => EmergencyContactsScreen(
-                            sessionServiceOverride: authController.sessionService,
-                          ),
+                          builder: (_) => const EmergencyContactsScreen(),
                         ),
                       );
                     },
@@ -182,10 +312,20 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: AppDimensions.space20),
 
-            // 2. Language Settings Card (Tamil & English only)
-            Text(
-              loc.languageSettingsTitle,
-              style: AppTextStyles.heading2,
+            // 2. Language Settings Card (All 23 Supported Indian Languages)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  loc.languageSettingsTitle,
+                  style: AppTextStyles.heading2,
+                ),
+                TextButton.icon(
+                  onPressed: () => _showAllLanguagesSheet(context, authController, activeLang),
+                  icon: const Icon(Icons.translate_rounded, size: 16.0),
+                  label: const Text('All 23 Languages'),
+                ),
+              ],
             ),
             const SizedBox(height: AppDimensions.space8),
             Material(
@@ -196,11 +336,9 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // ignore: deprecated_member_use
                   RadioListTile<String>(
                     key: const Key('language_option_ta'),
                     value: 'ta',
-                    // ignore: deprecated_member_use
                     groupValue: activeLang,
                     activeColor: AppColors.primary,
                     title: Row(
@@ -218,7 +356,6 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    // ignore: deprecated_member_use
                     onChanged: (val) {
                       if (val != null) {
                         authController.setLocale(val);
@@ -226,11 +363,9 @@ class ProfileScreen extends StatelessWidget {
                     },
                   ),
                   const Divider(height: 1, indent: 16),
-                  // ignore: deprecated_member_use
                   RadioListTile<String>(
                     key: const Key('language_option_en'),
                     value: 'en',
-                    // ignore: deprecated_member_use
                     groupValue: activeLang,
                     activeColor: AppColors.primary,
                     title: Row(
@@ -248,12 +383,52 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    // ignore: deprecated_member_use
                     onChanged: (val) {
                       if (val != null) {
                         authController.setLocale(val);
                       }
                     },
+                  ),
+                  const Divider(height: 1, indent: 16),
+                  RadioListTile<String>(
+                    key: const Key('language_option_hi'),
+                    value: 'hi',
+                    groupValue: activeLang,
+                    activeColor: AppColors.primary,
+                    title: Row(
+                      children: [
+                        Text(
+                          loc.hindiLang,
+                          style: AppTextStyles.body.copyWith(
+                            fontWeight: activeLang == 'hi' ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '(हिन्दी)',
+                          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                    onChanged: (val) {
+                      if (val != null) {
+                        authController.setLocale(val);
+                      }
+                    },
+                  ),
+                  const Divider(height: 1, indent: 16),
+                  ListTile(
+                    leading: const Icon(Icons.language_rounded, color: AppColors.primary),
+                    title: Text(
+                      loc.languageSelectorTitle,
+                      style: AppTextStyles.heading3.copyWith(fontSize: 15.0),
+                    ),
+                    subtitle: Text(
+                      '${SupportedLocales.getLanguageName(Locale(activeLang))} • 23 Languages',
+                      style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14.0, color: AppColors.textMuted),
+                    onTap: () => _showAllLanguagesSheet(context, authController, activeLang),
                   ),
                 ],
               ),
@@ -272,22 +447,22 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.notifications_none_rounded, color: Color(0xFFD97706)),
-                    title: Text('Notifications & Health Alerts', style: AppTextStyles.heading3.copyWith(fontSize: 15.0)),
+                    title: Text(loc.notificationsAndAlerts, style: AppTextStyles.heading3.copyWith(fontSize: 15.0)),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14.0, color: AppColors.textMuted),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Notifications settings configured.')),
+                        SnackBar(content: Text(loc.notificationsConfiguredMsg)),
                       );
                     },
                   ),
                   const Divider(height: 1, indent: 56),
                   ListTile(
                     leading: const Icon(Icons.shield_outlined, color: Color(0xFF0284C7)),
-                    title: Text('Consent & Privacy', style: AppTextStyles.heading3.copyWith(fontSize: 15.0)),
+                    title: Text(loc.consentAndPrivacy, style: AppTextStyles.heading3.copyWith(fontSize: 15.0)),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14.0, color: AppColors.textMuted),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Consent & Privacy configured.')),
+                        SnackBar(content: Text(loc.consentConfiguredMsg)),
                       );
                     },
                   ),
@@ -359,50 +534,43 @@ class ProfileScreen extends StatelessWidget {
                     '${AppConstants.appName} v${AppConstants.appVersion}',
                     style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
                   ),
-                  const SizedBox(height: AppDimensions.space4),
+                  const SizedBox(height: 4),
                   Text(
-                    'National Health Mission • ABDM Compliant',
-                    style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+                    '23 Supported Indian Languages Supported',
+                    style: AppTextStyles.caption.copyWith(color: AppColors.textMuted, fontSize: 11.0),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: AppDimensions.space20),
+
+            const SizedBox(height: AppDimensions.space32),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildUserHeader(BuildContext context, String name, String phone, String location) {
-    final initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'U';
-
+  Widget _buildUserHeader(
+    BuildContext context,
+    String name,
+    String phone,
+    String location,
+  ) {
     return Container(
-      width: double.infinity,
-      padding: AppDimensions.cardPadding,
+      padding: const EdgeInsets.all(AppDimensions.space16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppDimensions.roundedMedium,
         border: Border.all(color: AppColors.borderLight),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x080F172A),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
       ),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 32,
+            radius: 30.0,
             backgroundColor: AppColors.primaryLight,
             child: Text(
-              initial,
-              style: AppTextStyles.display.copyWith(
-                color: AppColors.primary,
-                fontSize: 24.0,
-              ),
+              name.isNotEmpty ? name[0].toUpperCase() : 'U',
+              style: AppTextStyles.heading1.copyWith(color: AppColors.primary),
             ),
           ),
           const SizedBox(width: AppDimensions.space16),
@@ -412,22 +580,23 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: AppTextStyles.heading2,
+                  style: AppTextStyles.heading2.copyWith(fontSize: 18.0),
                 ),
-                const SizedBox(height: AppDimensions.space4),
+                const SizedBox(height: 4.0),
                 Text(
                   phone,
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textMuted),
                 ),
-                const SizedBox(height: AppDimensions.space2),
-                Text(
-                  location,
-                  style: AppTextStyles.bodySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                const SizedBox(height: 2.0),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, size: 14.0, color: AppColors.primary),
+                    const SizedBox(width: 4.0),
+                    Text(
+                      location,
+                      style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -29,19 +29,20 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _validateAndSubmit() async {
+    final loc = AppLocalizations.of(context);
     final rawNumber = _phoneController.text.trim();
     final cleanNumber = rawNumber.replaceAll(RegExp(r'\s+|-'), '');
 
     if (cleanNumber.isEmpty) {
       setState(() {
-        _validationError = 'Please enter your mobile number.';
+        _validationError = loc.enterMobileNumber;
       });
       return;
     }
 
     if (!RegExp(r'^[6-9]\d{9}$').hasMatch(cleanNumber)) {
       setState(() {
-        _validationError = 'Please enter a valid 10-digit mobile number.';
+        _validationError = loc.enterValidMobileNumber;
       });
       return;
     }
@@ -70,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        title: const Text('Patient Access'),
+        title: Text(localizations.patientAccess),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

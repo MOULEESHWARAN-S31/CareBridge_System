@@ -81,6 +81,19 @@ export const DEMO_CREDENTIALS = {
   }
 };
 
+// Keep previously published development aliases working while the backend
+// remains the source of truth for the canonical demo credentials.
+const LEGACY_DEMO_ALIASES = new Map([
+  ['gov_salem|Gov@123', ['government@carebridge.local', 'Gov@123']],
+  ['hospital.admin@carebridge.local|Admin@123', ['hospital.admin@carebridge.local', 'Hospital@123']],
+  ['receptionist@carebridge.local|Recep@123', ['reception@carebridge.local', 'Reception@123']],
+  ['pharmacist@carebridge.local|Pharm@123', ['pharmacy@carebridge.local', 'Pharmacy@123']],
+  ['billing@carebridge.local|Bill@123', ['billing@carebridge.local', 'Billing@123']],
+  ['records@carebridge.local|Record@123', ['records@carebridge.local', 'Records@123']],
+  ['emergency@carebridge.local|Emerg@123', ['emergency@carebridge.local', 'Emergency@123']],
+  ['hr@carebridge.local|Hr@123', ['hr@carebridge.local', 'HR@123']]
+]);
+
 /**
  * Validates individual form fields
  */
@@ -107,8 +120,11 @@ export function validateLoginForm(formData) {
  * Never creates fake tokens or bypasses authentication locally.
  */
 export async function authenticateUser(credentials) {
-  const identifier = (credentials.employeeId || '').trim();
-  const password = credentials.password || '';
+  const enteredIdentifier = (credentials.employeeId || '').trim();
+  const enteredPassword = credentials.password || '';
+  const canonicalCredentials = LEGACY_DEMO_ALIASES.get(`${enteredIdentifier}|${enteredPassword}`);
+  const identifier = canonicalCredentials ? canonicalCredentials[0] : enteredIdentifier;
+  const password = canonicalCredentials ? canonicalCredentials[1] : enteredPassword;
 
   try {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -125,10 +141,6 @@ export async function authenticateUser(credentials) {
     const data = await response.json();
 
     if (response.ok && data.token) {
-      // Store authenticated session
-      localStorage.setItem('cb_auth_token', data.token);
-      localStorage.setItem('cb_auth_user', JSON.stringify(data.user));
-
       return {
         success: true,
         token: data.token,
@@ -147,4 +159,17 @@ export async function authenticateUser(credentials) {
       errorMessage: 'Unable to connect to CareBridge server'
     };
   }
+}
+
+export async function createLoginHandoff(token, user, destination) {
+  const response = await fetch(`${API_BASE_URL}/auth/handoff`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, user, destination })
+  });
+  const data = await response.json();
+  if (!response.ok || !data.code) {
+    throw new Error(data.error || 'Unable to create secure login handoff.');
+  }
+  return data.code;
 }

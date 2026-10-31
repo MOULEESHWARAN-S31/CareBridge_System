@@ -5,7 +5,7 @@ import {
   Calendar, Activity, FileText, Send, User, Sparkles
 } from 'lucide-react';
 import { DOCTORS, PATIENTS } from '../data/mockData';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
 
 export default function TelemedicinePage() {
   const toast = useToast();

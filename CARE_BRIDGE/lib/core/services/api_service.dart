@@ -26,10 +26,14 @@ class ApiService {
 
   static const Duration defaultTimeout = Duration(seconds: 4);
 
-  Map<String, String> _buildHeaders({String? token}) {
+  /// Current active language code for Accept-Language header
+  static String activeLanguageCode = 'en';
+
+  Map<String, String> _buildHeaders({String? token, String? languageCode}) {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'Accept-Language': languageCode ?? activeLanguageCode,
     };
     if (token != null && token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';

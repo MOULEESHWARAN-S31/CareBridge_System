@@ -266,6 +266,68 @@ async function runTests() {
       assert(bedUpdate.status === 200, 'PUT /api/hospital/beds authorized returns HTTP 200');
     }
 
+    // 6. Multilingual Architecture & Translation System Tests
+    console.log('\n6. Multilingual Architecture & Translation Tests (All 23 Locales):');
+
+    // 6A. Doctor Localization via Accept-Language Header
+    const tamilDocs = await request('GET', '/api/doctors', null, { 'Accept-Language': 'ta' });
+    assert(tamilDocs.status === 200, 'GET /api/doctors with Accept-Language: ta returns HTTP 200');
+    assert(Array.isArray(tamilDocs.body) && tamilDocs.body.length > 0, 'Returns array of doctors');
+    const firstDoc = tamilDocs.body[0];
+    assert(firstDoc.official_name != null, 'Doctor retains original official_name');
+    assert(firstDoc.display_name != null, 'Doctor has localized display_name');
+    assert(firstDoc.display_specialization != null, 'Doctor has localized display_specialization');
+
+    // 6B. Hospital Localization via Accept-Language Header
+    const tamilHosps = await request('GET', '/api/hospitals', null, { 'Accept-Language': 'ta' });
+    assert(tamilHosps.status === 200, 'GET /api/hospitals with Accept-Language: ta returns HTTP 200');
+    assert(Array.isArray(tamilHosps.body) && tamilHosps.body.length > 0, 'Returns array of hospitals');
+    const firstHosp = tamilHosps.body[0];
+    assert(firstHosp.official_name != null, 'Hospital retains official_name');
+    assert(firstHosp.display_name != null, 'Hospital has display_name');
+    assert(firstHosp.display_type != null, 'Hospital has display_type');
+
+    // 6C. Dynamic Translation Endpoint
+    const transRes = await request('POST', '/api/translate', {
+      text: 'Your appointment has been confirmed.',
+      targetLang: 'ta'
+    });
+    assert(transRes.status === 200, 'POST /api/translate returns HTTP 200');
+    assert(transRes.body.success === true, 'Translation reports success: true');
+    assert(transRes.body.translatedText.includes('உறுதிசெய்யப்பட்டது'), 'Translates healthcare phrase to Tamil');
+
+    // 6D. Translation Cache Verification
+    const cachedRes = await request('POST', '/api/translate', {
+      text: 'Your appointment has been confirmed.',
+      targetLang: 'ta'
+    });
+    assert(cachedRes.body.cached === true, 'Subsequent translation request served from cache');
+
+    // 6E. Multilingual CareBridge Assistant - Tamil Emergency
+    const assistantTa = await request('POST', '/api/assistant/chat', {
+      message: 'அவசரம்! எனக்கு நெஞ்சு வலி உள்ளது',
+      locale: 'ta'
+    });
+    assert(assistantTa.status === 200, 'POST /api/assistant/chat returns HTTP 200');
+    assert(assistantTa.body.intent === 'emergency', 'Assistant detects emergency intent in Tamil');
+    assert(assistantTa.body.reply.includes('108'), 'Assistant emergency reply includes 108 in Tamil');
+    assert(assistantTa.body.disclaimer != null, 'Assistant includes medical disclaimer');
+
+    // 6F. Multilingual CareBridge Assistant - Hindi Appointment
+    const assistantHi = await request('POST', '/api/assistant/chat', {
+      message: 'मुझे डॉक्टर अपॉइंटमेंट बुक करना है',
+      locale: 'hi'
+    });
+    assert(assistantHi.status === 200, 'POST /api/assistant/chat returns HTTP 200 in Hindi');
+    assert(assistantHi.body.intent === 'appointment', 'Assistant detects appointment intent in Hindi');
+    assert(assistantHi.body.locale === 'hi', 'Assistant responds in Hindi locale');
+
+    // 6G. Translation Status & Coverage Report (23 Locales)
+    const statusRes = await request('GET', '/api/translations/status');
+    assert(statusRes.status === 200, 'GET /api/translations/status returns HTTP 200');
+    assert(statusRes.body.totalLanguages === 23, 'Reports 23 supported languages');
+    assert(statusRes.body.languages.some(l => l.locale === 'ur' && l.rtl === true), 'Urdu flagged as RTL');
+
     console.log('\n====================================================');
     console.log(`[✓ ALL TESTS PASSED] (${passedTests}/${totalTests} tests successful)`);
     console.log('====================================================');

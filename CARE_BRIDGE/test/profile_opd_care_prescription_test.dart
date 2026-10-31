@@ -306,12 +306,10 @@ void main() {
       await tester.pumpWidget(createTestApp(const ProfileScreen(), sessionService: session));
       await tester.pumpAndSettle();
 
-      // Check that Tamil and English options exist
+      // Check that Tamil, English, and Hindi quick options exist
       expect(find.byKey(const Key('language_option_ta')), findsOneWidget);
       expect(find.byKey(const Key('language_option_en')), findsOneWidget);
-
-      // Hindi should NOT be in this language selector
-      expect(find.byKey(const Key('language_option_hi')), findsNothing);
+      expect(find.byKey(const Key('language_option_hi')), findsOneWidget);
 
       // Switching to Tamil updates SessionService
       await tester.tap(find.byKey(const Key('language_option_ta')));

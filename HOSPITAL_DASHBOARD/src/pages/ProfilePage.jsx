@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Camera, Edit, Lock, Bell, Shield, User, Briefcase } from 'lucide-react';
+import { Camera, Edit, Lock, Shield, User, Briefcase } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
+import { DEMO_ACCOUNTS } from '../auth/accounts';
 
 // Role-specific professional details
 const ROLE_DETAILS = {
@@ -212,13 +213,16 @@ export default function ProfilePage() {
 
   // Build user info from AuthContext (accounts.js data)
   const roleId = user?.roleId || 'admin';
-  const details = ROLE_DETAILS[roleId] || ROLE_DETAILS.admin;
-  const displayName = user?.name || 'User';
-  const displayRole = user?.roleName || 'Staff';
-  const displayDept = user?.dept || 'Hospital';
-  const displayEmpId = user?.empId || 'EMP-000';
-  const displayEmail = user?.email || 'user@careconnect.in';
-  const displayPhone = user?.phone || '+91 98765 00000';
+  const profileRoleId = roleId === 'receptionist' ? 'reception' : roleId;
+  const details = ROLE_DETAILS[profileRoleId] || ROLE_DETAILS.admin;
+  const accountDefaults = DEMO_ACCOUNTS.find(account => account.roleId === roleId) || {};
+  const displayName = user?.name || accountDefaults.name || 'User';
+  const displayRole = user?.roleName || accountDefaults.roleName || 'Staff';
+  const displayDept = user?.department || user?.dept || accountDefaults.dept || 'Not provided';
+  const displayEmpId = user?.empId || accountDefaults.empId || 'EMP-000';
+  const displayEmail = user?.email || accountDefaults.email || 'Not provided';
+  const displayPhone = user?.phone || accountDefaults.phone || 'Not provided';
+  const displayHospital = user?.hospital || accountDefaults.hospital || 'Government District Hospital — Salem';
   const displayAvatar = user?.avatar || displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   const [form, setForm] = useState({
@@ -232,17 +236,16 @@ export default function ProfilePage() {
     { id: 'personal',      label: 'Personal Info',  icon: User },
     { id: 'professional',  label: 'Professional',   icon: Briefcase },
     { id: 'security',      label: 'Security',       icon: Shield },
-    { id: 'notifications', label: 'Notifications',  icon: Bell },
   ];
 
   const roleColor = {
     admin: '#6366F1', doctor: '#0EA5E9', nurse: '#10B981',
     reception: '#F59E0B', lab: '#8B5CF6', pharmacy: '#EC4899',
     billing: '#14B8A6', records: '#64748B', emergency: '#EF4444', hr: '#F97316',
-  }[roleId] || '#0EA5E9';
+  }[profileRoleId] || '#0EA5E9';
 
   return (
-    <div className="page-content page-transition">
+    <div className="page-transition profile-page">
       <div className="page-header">
         <div>
           <h1 className="page-title">Profile</h1>
@@ -251,8 +254,8 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Hero Card */}
-      <div className="card" style={{ marginBottom: 24, background: `linear-gradient(135deg, ${roleColor}12, ${roleColor}06)`, borderColor: `${roleColor}30` }}>
-        <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap', padding: '20px 24px' }}>
+      <div className="card profile-hero" style={{ background: `linear-gradient(135deg, ${roleColor}12, ${roleColor}06)`, borderColor: `${roleColor}30` }}>
+        <div className="profile-hero-content">
           <div style={{ position: 'relative' }}>
             <div style={{
               width: 88, height: 88, borderRadius: '50%',
@@ -269,15 +272,15 @@ export default function ProfilePage() {
               <Camera size={13} color="white" />
             </button>
           </div>
-          <div style={{ flex: 1 }}>
+          <div className="profile-identity">
             <h2 style={{ marginBottom: 6, fontSize: 20, fontWeight: 800 }}>{form.name}</h2>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
               <span style={{ background: roleColor, color: 'white', padding: '3px 12px', borderRadius: 20, fontWeight: 700, fontSize: 12 }}>{displayRole}</span>
-              <span style={{ fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>🏥 CareConnect District Hospital</span>
+              <span className="profile-meta">🏥 {displayHospital}</span>
               <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>🏢 {displayDept}</span>
             </div>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              📧 {form.email} · 📞 {form.phone} · 🪪 {displayEmpId}
+            <div className="profile-contact">
+              <span>📧 {form.email}</span><span>📞 {form.phone}</span><span>🪪 {displayEmpId}</span>
             </div>
           </div>
           <button className="btn btn-primary" onClick={() => setEditing(!editing)}>
@@ -287,10 +290,12 @@ export default function ProfilePage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'white', borderRadius: 'var(--radius-md)', padding: 6, boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border-light)', width: 'fit-content' }}>
+      <div className="profile-tabs">
         {tabs.map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', border: 'none', borderRadius: 'var(--radius)', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', background: activeTab === t.id ? roleColor : 'transparent', color: activeTab === t.id ? 'white' : 'var(--text-secondary)', transition: 'var(--transition)' }}>
+            type="button"
+            aria-selected={activeTab === t.id}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 16px', border: 'none', borderRadius: 'var(--radius)', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', background: activeTab === t.id ? roleColor : 'transparent', color: activeTab === t.id ? 'white' : 'var(--text-secondary)', transition: 'var(--transition)' }}>
             <t.icon size={14} />{t.label}
           </button>
         ))}
@@ -317,7 +322,7 @@ export default function ProfilePage() {
                   <div className="info-row"><span className="info-row-label">Phone</span><span className="info-row-value">{form.phone}</span></div>
                   <div className="info-row"><span className="info-row-label">Department</span><span className="info-row-value">{form.department}</span></div>
                   <div className="info-row"><span className="info-row-label">Role</span><span className="info-row-value"><span className="badge" style={{ background: roleColor + '20', color: roleColor }}>{displayRole}</span></span></div>
-                  <div className="info-row"><span className="info-row-label">Hospital</span><span className="info-row-value">CareConnect District Hospital</span></div>
+                  <div className="info-row"><span className="info-row-label">Hospital</span><span className="info-row-value">{displayHospital}</span></div>
                 </>
               )}
             </div>
@@ -326,7 +331,7 @@ export default function ProfilePage() {
             <div className="section-title">Activity Summary</div>
             <div style={{ marginTop: 16 }}>
               {details.stats.map((s, i) => (
-                <div key={i} className="info-row">
+                <div key={i} className="info-row activity-row">
                   <span className="info-row-label">{s.label}</span>
                   <span className="info-row-value" style={{ fontWeight: 700, color: roleColor }}>{s.value}</span>
                 </div>
@@ -338,14 +343,14 @@ export default function ProfilePage() {
 
       {/* Professional Info */}
       {activeTab === 'professional' && (
-        <div className="card" style={{ maxWidth: 600 }}>
+        <div className="card profile-detail-card" style={{ maxWidth: 600 }}>
           <div className="section-title">Professional Information</div>
           <div style={{ marginTop: 16 }}>
             {[
               { label: 'Employee ID',       value: displayEmpId },
               { label: 'Designation',       value: displayRole },
               { label: 'Department',        value: displayDept },
-              { label: 'Hospital',          value: 'CareConnect District Hospital' },
+              { label: 'Hospital',          value: displayHospital },
               { label: 'Date of Joining',   value: details.joining },
               { label: 'Qualification',     value: details.qualification },
               { label: 'Registration No.',  value: details.regNo },
@@ -361,7 +366,7 @@ export default function ProfilePage() {
 
       {/* Security */}
       {activeTab === 'security' && (
-        <div className="card" style={{ maxWidth: 500 }}>
+        <div className="card profile-detail-card profile-security-card" style={{ maxWidth: 500 }}>
           <div className="section-title">Account Security</div>
           <div style={{ display: 'grid', gap: 14, marginTop: 16 }}>
             <div className="form-group"><label className="form-label">Current Password</label><input className="form-input" type="password" placeholder="••••••••" /></div>
@@ -380,28 +385,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Notifications */}
-      {activeTab === 'notifications' && (
-        <div className="card" style={{ maxWidth: 540 }}>
-          <div className="section-title">Notification Preferences</div>
-          <div style={{ marginTop: 16 }}>
-            {details.notifPrefs.map((pref, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border-light)' }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 500 }}>{pref.label}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{pref.desc}</div>
-                </div>
-                <label style={{ position: 'relative', display: 'inline-block', width: 44, height: 24, cursor: 'pointer', flexShrink: 0 }}>
-                  <input type="checkbox" defaultChecked={pref.default} style={{ opacity: 0, width: 0, height: 0 }} onChange={() => toast('Preference saved', 'success')} />
-                  <span style={{ position: 'absolute', cursor: 'pointer', inset: 0, background: pref.default ? roleColor : 'var(--border)', borderRadius: 12, transition: 'var(--transition)' }}>
-                    <span style={{ position: 'absolute', height: 18, width: 18, left: pref.default ? 22 : 3, bottom: 3, background: 'white', borderRadius: '50%', transition: 'var(--transition)', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }} />
-                  </span>
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

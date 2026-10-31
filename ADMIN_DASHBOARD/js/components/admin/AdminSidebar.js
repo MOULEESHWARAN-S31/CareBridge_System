@@ -21,7 +21,16 @@ export function createAdminSidebar() {
     const currSub = adminStore.activeSubFilter;
 
     sidebar.innerHTML = `
-      <div>
+      <div class="admin-sidebar-brand">
+        <button type="button" class="admin-logo-toggle" aria-label="${adminStore.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}" aria-expanded="${!adminStore.sidebarCollapsed}" title="${adminStore.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}">
+          <img src="./assets/logo.png" alt="CareBridge logo" />
+        </button>
+        <div class="admin-sidebar-brand-copy">
+          <strong>CareBridge</strong>
+          <span>MASTER ADMINISTRATION</span>
+        </div>
+      </div>
+      <div class="admin-sidebar-navigation">
         <div class="sidebar-category-header">
           <span>Administration</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
@@ -125,12 +134,16 @@ export function createAdminSidebar() {
       </div>
     `;
 
+    const logoToggle = sidebar.querySelector('.admin-logo-toggle');
+    logoToggle.addEventListener('click', () => adminStore.toggleSidebar());
+
     // Attach navigation event handlers
     sidebar.querySelectorAll('[data-nav-section]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const sec = btn.getAttribute('data-nav-section');
         const sub = btn.getAttribute('data-nav-sub') || 'all';
         adminStore.setNavigation(sec, sub);
+        adminStore.setMobileMenuOpen(false);
         if (sec === 'hospitals' && sub === 'bulk-import') {
           window.location.hash = '#admin/hospitals/bulk-import';
         } else if (sec === 'stores' && sub === 'bulk-import') {
@@ -144,18 +157,21 @@ export function createAdminSidebar() {
     sidebar.querySelectorAll('[data-action="create-user"]').forEach((btn) => {
       btn.addEventListener('click', () => {
         adminStore.openModal('create-user');
+        adminStore.setMobileMenuOpen(false);
       });
     });
 
     sidebar.querySelectorAll('[data-action="add-hospital"]').forEach((btn) => {
       btn.addEventListener('click', () => {
         adminStore.openModal('add-hospital');
+        adminStore.setMobileMenuOpen(false);
       });
     });
 
     sidebar.querySelectorAll('[data-action="add-store"]').forEach((btn) => {
       btn.addEventListener('click', () => {
         adminStore.openModal('add-store');
+        adminStore.setMobileMenuOpen(false);
       });
     });
   }

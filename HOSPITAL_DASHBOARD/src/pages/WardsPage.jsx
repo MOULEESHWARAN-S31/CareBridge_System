@@ -4,7 +4,7 @@ import {
   ShieldCheck, ArrowRight, UserPlus, RefreshCw, X, ArrowLeftRight
 } from 'lucide-react';
 import { BED_STATISTICS, WARD_BED_MAP, PATIENTS } from '../data/mockData';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
 
 const STATUS_CONFIG = {
   Available:   { color: '#16A34A', bg: '#DCFCE7', border: '#86EFAC', label: 'Available' },

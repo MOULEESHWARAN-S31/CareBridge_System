@@ -46,6 +46,13 @@ export function createAdminDashboard(onSwitchToLogin) {
 
   shell.appendChild(bodyLayout);
 
+  const sidebarOverlay = document.createElement('button');
+  sidebarOverlay.type = 'button';
+  sidebarOverlay.className = 'admin-sidebar-overlay';
+  sidebarOverlay.setAttribute('aria-label', 'Close administration navigation');
+  sidebarOverlay.addEventListener('click', () => adminStore.setMobileMenuOpen(false));
+  shell.appendChild(sidebarOverlay);
+
   // Modal & Drawer Mounts
   const modalContainer = document.createElement('div');
   modalContainer.id = 'admin-modal-root';
@@ -133,6 +140,8 @@ export function createAdminDashboard(onSwitchToLogin) {
   let lastSubFilter = null;
 
   function onStoreUpdate() {
+    shell.classList.toggle('sidebar-collapsed', adminStore.sidebarCollapsed);
+    shell.classList.toggle('mobile-menu-open', adminStore.mobileMenuOpen);
     if (lastActiveSection !== adminStore.activeSection || lastSubFilter !== adminStore.activeSubFilter) {
       lastActiveSection = adminStore.activeSection;
       lastSubFilter = adminStore.activeSubFilter;

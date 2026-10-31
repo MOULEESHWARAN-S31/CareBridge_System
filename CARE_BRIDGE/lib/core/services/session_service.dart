@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'api_service.dart';
 import '../../features/abha/domain/abha_profile.dart';
 import '../../features/authentication/domain/auth_user.dart';
 import '../../features/location/domain/healthcare_facility.dart';
@@ -41,7 +42,12 @@ class SessionService {
   static Future<SessionService> init() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return SessionService(prefs);
+      final service = SessionService(prefs);
+      final savedLang = service.getPreferredLanguage();
+      if (savedLang != null && savedLang.isNotEmpty) {
+        ApiService.activeLanguageCode = savedLang;
+      }
+      return service;
     } catch (_) {
       // Graceful fallback for test or headless environments
       return SessionService();
@@ -256,6 +262,7 @@ class SessionService {
   /// Sets and persists preferred application language
   Future<void> setPreferredLanguage(String languageCode) async {
     _inMemoryPreferredLanguage = languageCode;
+    ApiService.activeLanguageCode = languageCode;
     if (_preferences != null) {
       await _preferences.setString(_keyPreferredLanguage, languageCode);
     }

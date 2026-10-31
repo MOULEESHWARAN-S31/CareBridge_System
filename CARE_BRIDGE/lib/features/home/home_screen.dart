@@ -10,6 +10,7 @@ import '../../shared/services/mock_data_service.dart';
 import '../../shared/widgets/care_bridge_button.dart';
 import '../../shared/widgets/care_bridge_emergency_dialog.dart';
 import '../../shared/widgets/care_bridge_logo.dart';
+import 'carebridge_assistant_sheet.dart';
 
 /// CareBridge Patient Home Dashboard (Step 3)
 ///
@@ -66,11 +67,24 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
-        content: Text(
-          loc.assistantSoonMsg,
-          style: AppTextStyles.body.copyWith(color: AppColors.textPrimary),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              loc.assistantSoonMsg,
+              style: AppTextStyles.body.copyWith(color: AppColors.textPrimary),
+            ),
+          ],
         ),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              CareBridgeAssistantSheet.show(context, loc);
+            },
+            child: Text(loc.askAssistantBtn),
+          ),
           CareBridgeButton.primary(
             label: 'OK',
             onPressed: () => Navigator.of(ctx).pop(),

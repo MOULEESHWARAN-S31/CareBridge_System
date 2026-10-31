@@ -21,7 +21,7 @@ app.use(cors({
     'http://127.0.0.1:8080'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language']
 }));
 
 app.use(express.json());

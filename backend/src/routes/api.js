@@ -3,6 +3,7 @@ const router = express.Router();
 
 const { authenticateToken } = require('../middleware/auth');
 const { requireRole } = require('../middleware/requireRole');
+const { requireGovernmentScope } = require('../middleware/governmentScope');
 
 const authController = require('../controllers/authController');
 const userController = require('../controllers/userController');
@@ -21,6 +22,8 @@ const statsController = require('../controllers/statsController');
 
 // 1. AUTHENTICATION (Public login, protected /me)
 router.post('/auth/login', authController.login);
+router.post('/auth/handoff', authController.createHandoff);
+router.post('/auth/handoff/exchange', authController.exchangeHandoff);
 router.post('/auth/logout', authController.logout);
 router.get('/auth/me', authenticateToken, authController.getCurrentUser);
 
@@ -91,12 +94,12 @@ router.get('/opd', opdController.getOpdCard);
 router.post('/opd', opdController.createOpdCard);
 
 // 13. HEALTH ALERTS & HEALTH CAMPS & REFERRALS & NOTIFICATIONS
-router.get('/health-alerts', alertCampController.getHealthAlerts);
+router.get('/health-alerts', authenticateToken, requireGovernmentScope('ANY'), alertCampController.getHealthAlerts);
 router.post('/health-alerts', authenticateToken, requireRole(['ADMIN', 'GOVERNMENT']), alertCampController.createHealthAlert);
-router.get('/health-camps', alertCampController.getHealthCamps);
+router.get('/health-camps', authenticateToken, requireGovernmentScope('ANY'), alertCampController.getHealthCamps);
 router.post('/health-camps', authenticateToken, requireRole(['ADMIN', 'GOVERNMENT']), alertCampController.createHealthCamp);
-router.get('/referrals', alertCampController.getReferrals);
-router.get('/notifications', alertCampController.getNotifications);
+router.get('/referrals', authenticateToken, requireGovernmentScope('ANY'), alertCampController.getReferrals);
+router.get('/notifications', authenticateToken, requireGovernmentScope('ANY'), alertCampController.getNotifications);
 
 // 14. STATS & KPIS
 router.get('/stats', statsController.getStats);
@@ -107,5 +110,66 @@ router.get('/hospital/overview', hospitalClinicalController.getHospitalOverview)
 router.get('/hospital/patients/search', hospitalClinicalController.searchHospitalPatients);
 router.get('/hospital/beds', hospitalClinicalController.getHospitalBeds);
 router.put('/hospital/beds', authenticateToken, requireRole(['ADMIN', 'HOSPITAL_ADMIN', 'DOCTOR', 'NURSE']), hospitalClinicalController.updateHospitalBeds);
+
+// 16. MULTILINGUAL & TRANSLATION SYSTEM
+const translationController = require('../controllers/translationController');
+router.post('/translate', translationController.translate);
+router.post('/assistant/chat', translationController.chatAssistant);
+router.get('/translations/status', translationController.getTranslationStatus);
+
+
+// 17. GOVERNMENT DASHBOARD OPERATIONS
+const governmentController = require('../controllers/governmentController');
+
+// Profile & Authorized Scope
+router.get('/government/me', authenticateToken, requireGovernmentScope('ANY'), governmentController.getGovernmentProfile);
+
+// Camp Proposals (Full lifecycle)
+router.get('/government/camps', authenticateToken, requireGovernmentScope('ANY'), governmentController.getCampProposals);
+router.post('/government/camps', authenticateToken, requireGovernmentScope('ANY'), governmentController.createCampProposal);
+router.put('/government/camps/:id/status', authenticateToken, requireGovernmentScope('ANY'), governmentController.updateCampStatus);
+
+// Community Requests
+router.get('/government/community-requests', authenticateToken, requireGovernmentScope('ANY'), governmentController.getCommunityRequests);
+router.put('/government/community-requests/:id/status', authenticateToken, requireGovernmentScope('ANY'), governmentController.updateCommunityRequestStatus);
+router.post('/government/community-requests/:id/convert', authenticateToken, requireGovernmentScope('ANY'), governmentController.convertCommunityRequestToCamp);
+
+// Resource Requests (District -> State)
+router.get('/government/resource-requests', authenticateToken, requireGovernmentScope('ANY'), governmentController.getResourceRequests);
+router.post('/government/resource-requests', authenticateToken, requireGovernmentScope('ANY'), governmentController.createResourceRequest);
+router.put('/government/resource-requests/:id', authenticateToken, requireGovernmentScope('ANY'), governmentController.updateResourceRequest);
+
+// Medicine Requisitions
+router.get('/government/medicine-requisitions', authenticateToken, requireGovernmentScope('ANY'), governmentController.getMedicineRequisitions);
+router.post('/government/medicine-requisitions', authenticateToken, requireGovernmentScope('ANY'), governmentController.createMedicineRequisition);
+
+// Audit Events
+router.get('/government/audit-events', authenticateToken, requireGovernmentScope('ANY'), governmentController.getAuditEvents);
+router.post('/government/audit-events', authenticateToken, requireGovernmentScope('ANY'), governmentController.createAuditEvent);
+
+// Announcements
+router.get('/government/announcements', authenticateToken, requireGovernmentScope('ANY'), governmentController.getAnnouncements);
+router.post('/government/announcements', authenticateToken, requireGovernmentScope('ANY'), governmentController.createAnnouncement);
+router.put('/government/announcements/:id/status', authenticateToken, requireGovernmentScope('ANY'), governmentController.updateAnnouncementStatus);
+
+
+
+// 18. CROSS-DASHBOARD SHARED SYNCHRONIZATION
+const crossDashboardController = require('../controllers/crossDashboardController');
+
+// Facility Medicine Inventory (Hospital <-> Government)
+router.get('/hospital/medicines', authenticateToken, requireRole(['ADMIN', 'GOVERNMENT', 'HOSPITAL_ADMIN', 'DOCTOR', 'NURSE', 'LAB_STAFF', 'PHARMACIST']), crossDashboardController.getFacilityMedicines);
+router.put('/hospital/medicines/:id', authenticateToken, requireRole(['ADMIN', 'HOSPITAL_ADMIN', 'PHARMACIST']), crossDashboardController.updateFacilityMedicineStock);
+
+// Facility Diagnostics (Hospital <-> Government)
+router.get('/hospital/diagnostics', authenticateToken, requireRole(['ADMIN', 'GOVERNMENT', 'HOSPITAL_ADMIN', 'DOCTOR', 'NURSE', 'LAB_STAFF', 'PHARMACIST']), crossDashboardController.getFacilityDiagnostics);
+router.put('/hospital/diagnostics/:id', authenticateToken, requireRole(['ADMIN', 'HOSPITAL_ADMIN', 'LAB_STAFF']), crossDashboardController.updateFacilityDiagnosticStatus);
+
+// Health Camp Hospital Assignments (Government <-> Hospital Staff)
+router.get('/hospital/camp-assignments', authenticateToken, requireRole(['ADMIN', 'GOVERNMENT', 'HOSPITAL_ADMIN', 'DOCTOR', 'NURSE', 'LAB_STAFF', 'PHARMACIST']), crossDashboardController.getHospitalCampAssignments);
+router.put('/hospital/camp-assignments/:id', authenticateToken, requireRole(['ADMIN', 'HOSPITAL_ADMIN', 'DOCTOR', 'NURSE', 'LAB_STAFF', 'PHARMACIST']), crossDashboardController.respondToCampAssignment);
+
+// Admin Bulk Import (Transactional PostgreSQL Import)
+router.post('/admin/bulk-import/hospitals', authenticateToken, requireRole('ADMIN'), crossDashboardController.bulkImportHospitals);
 
 module.exports = router;

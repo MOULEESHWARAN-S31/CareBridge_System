@@ -1,8 +1,10 @@
 const { query } = require('../config/db');
+const { localizeDoctor } = require('../services/translationDbService');
 
 async function getDoctors(req, res, next) {
   try {
     const { hospitalId, specialization } = req.query;
+    const locale = req.query.locale || req.headers['accept-language'] || 'en';
 
     let sql = `
       SELECT d.id, d.doctor_id, d.name, d.specialization, d.hospital_id,
@@ -27,7 +29,8 @@ async function getDoctors(req, res, next) {
     sql += ` ORDER BY d.name ASC;`;
 
     const result = await query(sql, params);
-    res.json(result.rows);
+    const localized = result.rows.map(doc => localizeDoctor(doc, locale));
+    res.json(localized);
   } catch (err) {
     next(err);
   }
@@ -36,6 +39,7 @@ async function getDoctors(req, res, next) {
 async function getDoctorById(req, res, next) {
   try {
     const { id } = req.params;
+    const locale = req.query.locale || req.headers['accept-language'] || 'en';
 
     const sql = `
       SELECT d.*, h.name AS hospital_name, h.district AS hospital_district
@@ -47,10 +51,15 @@ async function getDoctorById(req, res, next) {
 
     const result = await query(sql, [id]);
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Doctor not found.' });
+      return res.status(404).json({
+        success: false,
+        code: 'DOCTOR_NOT_FOUND',
+        messageKey: 'doctorNotFound',
+        error: 'Doctor not found.'
+      });
     }
 
-    res.json(result.rows[0]);
+    res.json(localizeDoctor(result.rows[0], locale));
   } catch (err) {
     next(err);
   }
@@ -60,6 +69,7 @@ async function getDoctorSlots(req, res, next) {
   try {
     const { id } = req.params;
     const { date } = req.query;
+    const locale = req.query.locale || req.headers['accept-language'] || 'en';
 
     const targetDate = date || new Date().toISOString().split('T')[0];
 
@@ -94,6 +104,7 @@ async function getDoctorSlots(req, res, next) {
     res.json({
       doctorId: id,
       date: targetDate,
+      locale,
       slots
     });
   } catch (err) {

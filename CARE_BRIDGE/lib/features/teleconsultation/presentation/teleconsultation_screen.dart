@@ -305,7 +305,7 @@ class _TeleconsultationScreenState extends State<TeleconsultationScreen> {
                   _controller.setSpecialization(null);
                   _controller.setAvailabilityFilter(false);
                 },
-                child: const Text('Reset Filters'),
+                child: Text(loc.resetFilters),
               ),
             ],
           ),

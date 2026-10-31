@@ -42,6 +42,8 @@ class AdminStore {
     this.activeSection = 'users'; // 'users' | 'hospitals' | 'stores' | 'roles' | 'audit' | 'bulk-import'
     this.activeSubFilter = 'all';  // 'all' | 'active' | 'inactive' | 'pending' | 'roles' | etc.
     this.searchQuery = '';
+    this.sidebarCollapsed = false;
+    this.mobileMenuOpen = false;
     
     // Modals and Drawers
     this.activeModal = null; // null | 'create-user' | 'password-reset' | 'add-hospital' | 'add-store'
@@ -210,6 +212,17 @@ class AdminStore {
 
   setSearchQuery(q) {
     this.searchQuery = q || '';
+    this.notify();
+  }
+
+  toggleSidebar() {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+    this.mobileMenuOpen = false;
+    this.notify();
+  }
+
+  setMobileMenuOpen(isOpen) {
+    this.mobileMenuOpen = Boolean(isOpen);
     this.notify();
   }
 

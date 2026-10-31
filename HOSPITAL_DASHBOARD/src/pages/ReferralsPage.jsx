@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Plus, ArrowLeftRight, Eye, CheckCircle2, Calendar, MapPin, Building } from 'lucide-react';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
 
 const DUMMY_REFERRALS = [
   { id: 'REF-101', patientId: 'P1001', from: 'PHC A', to: 'District Hospital', specialist: 'Cardiology', status: 'Accepted', date: 'Today, 08:30 AM', priority: 'High', reason: 'Abnormal ECG & chest discomfort' },

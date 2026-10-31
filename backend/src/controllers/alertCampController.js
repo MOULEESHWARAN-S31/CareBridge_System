@@ -7,8 +7,15 @@ async function getHealthAlerts(req, res, next) {
 
     let sql = 'SELECT * FROM health_alerts WHERE status = \'Active\'';
     const params = [];
+    const authorizedDistrict = req.governmentScope?.district;
 
-    if (district && district !== 'ALL') {
+    if (authorizedDistrict) {
+      if (district && district !== 'ALL' && String(district).toLowerCase() !== String(authorizedDistrict).toLowerCase()) {
+        return res.status(403).json({ error: 'Requested district is outside your authorized scope.' });
+      }
+      params.push(authorizedDistrict);
+      sql += ` AND LOWER(district) = LOWER($${params.length})`;
+    } else if (district && district !== 'ALL') {
       params.push(district);
       sql += ` AND LOWER(district) = LOWER($${params.length})`;
     }
@@ -33,6 +40,11 @@ async function createHealthAlert(req, res, next) {
 
     if (!title || !severity || !area || !district) {
       return res.status(400).json({ error: 'title, severity, area, and district are required.' });
+    }
+    const authorizedDistrict = req.user?.role === 'GOVERNMENT' ? req.user.district : null;
+    if (authorizedDistrict && !['statewide', 'state level', 'all'].includes(String(authorizedDistrict).toLowerCase()) &&
+        String(district).toLowerCase() !== String(authorizedDistrict).toLowerCase()) {
+      return res.status(403).json({ error: 'Alert district is outside your authorized scope.' });
     }
 
     const alertId = `ALT-${Math.floor(100 + Math.random() * 900)}`;
@@ -67,8 +79,17 @@ async function getHealthCamps(req, res, next) {
 
     let sql = 'SELECT * FROM health_camps WHERE 1=1';
     const params = [];
+    const authorizedDistrict = req.governmentScope?.district;
 
-    if (district && district !== 'ALL') {
+    if (authorizedDistrict && district && district !== 'ALL' &&
+        String(district).toLowerCase() !== String(authorizedDistrict).toLowerCase()) {
+      return res.status(403).json({ error: 'Requested district is outside your authorized scope.' });
+    }
+
+    if (authorizedDistrict) {
+      params.push(authorizedDistrict);
+      sql += ` AND LOWER(district) = LOWER($${params.length})`;
+    } else if (district && district !== 'ALL') {
       params.push(district);
       sql += ` AND LOWER(district) = LOWER($${params.length})`;
     }
@@ -91,8 +112,15 @@ async function createHealthCamp(req, res, next) {
   try {
     const { location, district, campType, campDate, doctorsCount, nursesCount, expectedPatients, status } = req.body;
 
+    const authorizedDistrict = req.user?.role === 'GOVERNMENT' ? req.user.district : null;
     if (!location || !district || !campType || !campDate) {
       return res.status(400).json({ error: 'location, district, campType, and campDate are required.' });
+    }
+    if (authorizedDistrict && String(authorizedDistrict).toLowerCase() !== 'statewide' &&
+        String(authorizedDistrict).toLowerCase() !== 'state level' &&
+        String(authorizedDistrict).toLowerCase() !== 'all' &&
+        String(district).toLowerCase() !== String(authorizedDistrict).toLowerCase()) {
+      return res.status(403).json({ error: 'Camp district is outside your authorized scope.' });
     }
 
     const campId = `HC-${Math.floor(100 + Math.random() * 900)}`;
@@ -124,7 +152,15 @@ async function createHealthCamp(req, res, next) {
 // Referrals
 async function getReferrals(req, res, next) {
   try {
-    const sql = `
+    const { district } = req.query;
+    const authorizedDistrict = req.governmentScope?.district;
+    if (authorizedDistrict && district && district !== 'ALL' &&
+        String(district).toLowerCase() !== String(authorizedDistrict).toLowerCase()) {
+      return res.status(403).json({ error: 'Requested district is outside your authorized scope.' });
+    }
+
+    const params = [];
+    let sql = `
       SELECT r.id, r.referral_id, r.patient_id, r.patient_name,
              r.from_facility_id, r.to_facility_id, r.disease,
              r.priority, r.status, r.created_at,
@@ -132,9 +168,19 @@ async function getReferrals(req, res, next) {
       FROM referrals r
       LEFT JOIN hospitals h1 ON r.from_facility_id = h1.hospital_id
       LEFT JOIN hospitals h2 ON r.to_facility_id = h2.hospital_id
-      ORDER BY r.created_at DESC;
+      WHERE 1=1
     `;
-    const result = await query(sql);
+
+    if (authorizedDistrict) {
+      params.push(authorizedDistrict);
+      sql += ` AND (LOWER(h1.district) = LOWER($${params.length}) OR LOWER(h2.district) = LOWER($${params.length}))`;
+    } else if (district && district !== 'ALL') {
+      params.push(district);
+      sql += ` AND (LOWER(h1.district) = LOWER($${params.length}) OR LOWER(h2.district) = LOWER($${params.length}))`;
+    }
+
+    sql += ' ORDER BY r.created_at DESC;';
+    const result = await query(sql, params);
     res.json(result.rows);
   } catch (err) {
     next(err);
@@ -147,9 +193,16 @@ async function getNotifications(req, res, next) {
     const { district } = req.query;
     let sql = 'SELECT * FROM notifications WHERE 1=1';
     const params = [];
-    if (district && district !== 'ALL') {
+    const authorizedDistrict = req.governmentScope?.district;
+    if (authorizedDistrict) {
+      if (district && district !== 'ALL' && String(district).toLowerCase() !== String(authorizedDistrict).toLowerCase()) {
+        return res.status(403).json({ error: 'Requested district is outside your authorized scope.' });
+      }
+      params.push(authorizedDistrict);
+      sql += ` AND (LOWER(district) = LOWER($${params.length}) OR district = 'All')`;
+    } else if (district && district !== 'ALL') {
       params.push(district);
-      sql += ` AND (LOWER(district) = LOWER($1) OR district = 'All')`;
+      sql += ` AND (LOWER(district) = LOWER($${params.length}) OR district = 'All')`;
     }
     sql += ' ORDER BY sent_at DESC;';
     const result = await query(sql, params);

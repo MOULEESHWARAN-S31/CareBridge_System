@@ -3281,73 +3281,6 @@ export const DISTRICT_SUMMARIES: Record<string, DistrictSummary> = {
   }
 };
 
-// Multilingual Translations Dictionary
-export const TRANSLATIONS = {
-  en: {
-    appTitle: 'CareBridge Government Healthcare Dashboard',
-    tagline: 'Bridging Government Healthcare Data, Services & People',
-    overview: 'Overview',
-    liveMonitoring: 'Live Monitoring',
-    hospitals: 'Government Hospitals',
-    doctors: 'Doctors & Specialists',
-    patients: 'Patients',
-    telemedicine: 'Telemedicine',
-    medicines: 'Medicine Inventory',
-    diagnostics: 'Diagnostics',
-    beds: 'Bed Availability',
-    analytics: 'Analytics & Ranking',
-    surveillance: 'Disease Surveillance',
-    reports: 'Reports',
-    alerts: 'Alerts & Actions',
-    auditLogs: 'Audit Logs',
-    logout: 'Logout Officer',
-    demoMode: 'Demo Data: ON',
-    searchPlaceholder: 'Search hospital, disease, doctor, medicine, alert...'
-  },
-  ta: {
-    appTitle: 'கேர்பிரிட்ஜ் அரசு பொது சுகாதார நிர்வாக தளம்',
-    tagline: 'அரசு சுகாதார தரவு, சேவைகள் மற்றும் மக்களை இணைக்கிறது',
-    overview: 'மேலோட்டம்',
-    liveMonitoring: 'நேரலை கண்காணிப்பு',
-    hospitals: 'அரசு மருத்துவமனைகள்',
-    doctors: 'மருத்துவர்கள் & நிபுணர்கள்',
-    patients: 'நோயாளிகள்',
-    telemedicine: 'தொலை மருத்துவ ஆலோசனை',
-    medicines: 'மருந்து கையிருப்பு',
-    diagnostics: 'பரிசோதனை மையங்கள்',
-    beds: 'படுக்கை வசதி',
-    analytics: 'மாவட்ட மதிப்பீடு & புள்ளிவிவரம்',
-    surveillance: 'நோய் கண்காணிப்பு',
-    reports: 'அறிக்கைகள் பதிவிறக்கம்',
-    alerts: 'அவசர எச்சரிக்கைகள்',
-    auditLogs: 'தணிக்கை பதிவுகள்',
-    logout: 'வெளியேறு',
-    demoMode: 'மாதிரி தரவு: இயங்குகிறது',
-    searchPlaceholder: 'மருத்துவமனை, நோய், மருத்துவர், மருந்து தேடுக...'
-  },
-  hi: {
-    appTitle: 'केयरब्रिज सरकारी स्वास्थ्य प्रशासन डैशबोर्ड',
-    tagline: 'सरकारी स्वास्थ्य डेटा, सेवाओं और जनता को जोड़ना',
-    overview: 'अवलोकन',
-    liveMonitoring: 'लाइव निगरानी',
-    hospitals: 'सरकारी अस्पताल',
-    doctors: 'डॉक्टर एवं विशेषज्ञ',
-    patients: 'मरीज़ रिकॉर्ड',
-    telemedicine: 'टेलीमेडिसिन',
-    medicines: 'दवा इन्वेंटरी',
-    diagnostics: 'जांच केंद्र',
-    beds: 'उपलब्ध बिस्तर',
-    analytics: 'जिला रैंकिंग एवं विश्लेषण',
-    surveillance: 'रोग निगरानी',
-    reports: 'रिपोर्ट डाउनलोड',
-    alerts: 'आपातकालीन अलर्ट',
-    auditLogs: 'ऑडिट लॉग',
-    logout: 'लॉगआउट',
-    demoMode: 'डेमो डेटा: चालू',
-    searchPlaceholder: 'अस्पताल, बीमारी, डॉक्टर, दवा खोजें...'
-  }
-};
-
 export const MOCK_AUDIT_LOGS = [
   { id: 'log-1', timestamp: '2026-09-07 13:45', officer: 'Dr. S. Kumar', role: 'DHO', action: 'Approved Emergency Logistics Transfer #REQ-4412', module: 'Medicine Logistics', status: 'Success', location: 'Salem District HQ' },
   { id: 'log-2', timestamp: '2026-09-07 13:12', officer: 'Dr. R. Senthamilselvan', role: 'Dean', action: 'Updated Bed Availability & ICU Threshold', module: 'Beds & ICU', status: 'Success', location: 'Salem Medical College' },
@@ -3600,5 +3533,380 @@ export const SURVEILLANCE_CASES_DATA: SurveillanceCase[] = [
     actionProtocol: 'Vector source reduction in full effect. Rapid NS1 testing camps setup.',
     larvalBreteauIndex: 36,
     symptoms: ['High Fever', 'Joint Pain', 'Retro-orbital Headache', 'Petechiae']
+  }
+];
+
+
+// ============================================================================
+// STATE & DISTRICT ADMIN SPECIFICATION DATA MODELS & DATASETS
+// ============================================================================
+
+export interface DistrictPerformanceMetric {
+  districtId: string;
+  districtName: string;
+  avgWaitingTimeMinutes: number;
+  referralCompletionRate: number;
+  medicineAvailabilityPercent: number;
+  diagnosticAvailabilityPercent: number;
+  teleconsultCount: number;
+  followUpCompletionRate: number;
+  healthCampAttendance: number;
+  facilityStaffingGapsCount: number;
+  bedOccupancyPercent: number;
+  compositeScore: number;
+  status: 'OPTIMAL' | 'ATTENTION' | 'CRITICAL';
+}
+
+export const MOCK_DISTRICT_PERFORMANCE: DistrictPerformanceMetric[] = [
+  { districtId: 'dist-01', districtName: 'Salem', avgWaitingTimeMinutes: 18, referralCompletionRate: 88, medicineAvailabilityPercent: 86, diagnosticAvailabilityPercent: 91, teleconsultCount: 2845, followUpCompletionRate: 89, healthCampAttendance: 4200, facilityStaffingGapsCount: 4, bedOccupancyPercent: 82, compositeScore: 88, status: 'OPTIMAL' },
+  { districtId: 'dist-02', districtName: 'Coimbatore', avgWaitingTimeMinutes: 14, referralCompletionRate: 92, medicineAvailabilityPercent: 91, diagnosticAvailabilityPercent: 95, teleconsultCount: 3120, followUpCompletionRate: 91, healthCampAttendance: 4800, facilityStaffingGapsCount: 2, bedOccupancyPercent: 78, compositeScore: 92, status: 'OPTIMAL' },
+  { districtId: 'dist-03', districtName: 'Chennai', avgWaitingTimeMinutes: 24, referralCompletionRate: 85, medicineAvailabilityPercent: 94, diagnosticAvailabilityPercent: 96, teleconsultCount: 4100, followUpCompletionRate: 84, healthCampAttendance: 5600, facilityStaffingGapsCount: 3, bedOccupancyPercent: 91, compositeScore: 89, status: 'ATTENTION' },
+  { districtId: 'dist-04', districtName: 'Madurai', avgWaitingTimeMinutes: 21, referralCompletionRate: 81, medicineAvailabilityPercent: 83, diagnosticAvailabilityPercent: 85, teleconsultCount: 2190, followUpCompletionRate: 82, healthCampAttendance: 3900, facilityStaffingGapsCount: 6, bedOccupancyPercent: 86, compositeScore: 81, status: 'ATTENTION' },
+  { districtId: 'dist-05', districtName: 'Dharmapuri', avgWaitingTimeMinutes: 38, referralCompletionRate: 64, medicineAvailabilityPercent: 68, diagnosticAvailabilityPercent: 62, teleconsultCount: 940, followUpCompletionRate: 67, healthCampAttendance: 1850, facilityStaffingGapsCount: 14, bedOccupancyPercent: 89, compositeScore: 61, status: 'CRITICAL' },
+  { districtId: 'dist-06', districtName: 'Erode', avgWaitingTimeMinutes: 16, referralCompletionRate: 86, medicineAvailabilityPercent: 88, diagnosticAvailabilityPercent: 89, teleconsultCount: 1980, followUpCompletionRate: 88, healthCampAttendance: 3100, facilityStaffingGapsCount: 5, bedOccupancyPercent: 74, compositeScore: 84, status: 'OPTIMAL' },
+  { districtId: 'dist-07', districtName: 'Tiruchirappalli', avgWaitingTimeMinutes: 19, referralCompletionRate: 84, medicineAvailabilityPercent: 85, diagnosticAvailabilityPercent: 88, teleconsultCount: 2310, followUpCompletionRate: 86, healthCampAttendance: 3600, facilityStaffingGapsCount: 4, bedOccupancyPercent: 79, compositeScore: 85, status: 'OPTIMAL' },
+  { districtId: 'dist-08', districtName: 'Namakkal', avgWaitingTimeMinutes: 22, referralCompletionRate: 78, medicineAvailabilityPercent: 79, diagnosticAvailabilityPercent: 77, teleconsultCount: 1420, followUpCompletionRate: 79, healthCampAttendance: 2400, facilityStaffingGapsCount: 8, bedOccupancyPercent: 80, compositeScore: 76, status: 'ATTENTION' }
+];
+
+export interface DistrictResourceRequest {
+  id: string;
+  requestNumber: string;
+  district: string;
+  requestType: 'STAFF' | 'MEDICINE' | 'DIAGNOSTICS' | 'BLOOD' | 'CAMP_RESOURCES';
+  title: string;
+  description: string;
+  quantityNeeded: string;
+  urgency: 'CRITICAL' | 'HIGH' | 'MODERATE';
+  status: 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'FULFILLED';
+  submittedAt: string;
+  reviewNotes?: string;
+  assignedTo?: string;
+}
+
+export const MOCK_DISTRICT_REQUESTS: DistrictResourceRequest[] = [
+  {
+    id: 'req-01',
+    requestNumber: 'REQ-SLM-881',
+    district: 'Salem',
+    requestType: 'STAFF',
+    title: 'Emergency Pediatric Specialist Rotation for Yercaud Block',
+    description: 'Yercaud Primary Health Centre has a 100% vacancy for Pediatricians amidst seasonal viral fever cluster.',
+    quantityNeeded: '2 Pediatricians (30-day Deputation)',
+    urgency: 'CRITICAL',
+    status: 'UNDER_REVIEW',
+    submittedAt: '2026-10-30 09:30',
+    assignedTo: 'Director of Medical Education'
+  },
+  {
+    id: 'req-02',
+    requestNumber: 'REQ-DHP-882',
+    district: 'Dharmapuri',
+    requestType: 'MEDICINE',
+    title: 'Buffer Requisition: Ciprofloxacin & Oral Rehydration Salts',
+    description: 'Pennagaram PHC facing stockout following sudden gastroenteritis cases surge.',
+    quantityNeeded: '4,000 Strips Antibiotics + 2,500 ORS Sachets',
+    urgency: 'HIGH',
+    status: 'APPROVED',
+    submittedAt: '2026-10-29 14:15',
+    reviewNotes: 'Approved for emergency allocation from Salem Regional Medical Store.',
+    assignedTo: 'TNMSC Warehouse Officer'
+  },
+  {
+    id: 'req-03',
+    requestNumber: 'REQ-MDU-883',
+    district: 'Madurai',
+    requestType: 'BLOOD',
+    title: 'Urgent B-Negative Whole Blood Units Request',
+    description: 'Madurai District Blood Bank reports 0 units of B-Negative with 2 emergency trauma surgeries pending.',
+    quantityNeeded: '10 Units B-Negative',
+    urgency: 'CRITICAL',
+    status: 'FULFILLED',
+    submittedAt: '2026-10-28 11:00',
+    reviewNotes: 'Fulfilled via emergency courier from Tiruchirappalli Central Blood Centre.',
+    assignedTo: 'State Blood Transfusion Council'
+  },
+  {
+    id: 'req-04',
+    requestNumber: 'REQ-SLM-884',
+    district: 'Salem',
+    requestType: 'DIAGNOSTICS',
+    title: 'Automated Hematology Analyzer Reagent Cartridges',
+    description: 'Omalur Taluk Hospital lab throughput constrained due to depleted CBC reagents.',
+    quantityNeeded: '15 Cartridge Packs (1,500 tests capacity)',
+    urgency: 'HIGH',
+    status: 'SUBMITTED',
+    submittedAt: '2026-10-31 08:45',
+    assignedTo: 'State Diagnostic Directorate'
+  }
+];
+
+export interface CitizenCampRequest {
+  id: string;
+  requestId: string;
+  district: string;
+  block: string;
+  village: string;
+  category: 'General Medical' | 'Eye Care' | 'Diabetes & Hypertension' | 'Maternal & Child' | 'Dental' | 'Diagnostics & Lab';
+  requestCount: number;
+  leadReason: string;
+  status: 'PENDING_EVALUATION' | 'CAMP_PROPOSED' | 'MERGED' | 'RESOLVED';
+  firstReportedDate: string;
+  urgencyLevel: 'HIGH' | 'MEDIUM' | 'LOW';
+}
+
+export const MOCK_CITIZEN_CAMP_REQUESTS: CitizenCampRequest[] = [
+  {
+    id: 'ccr-01',
+    requestId: 'CCR-9921',
+    district: 'Salem',
+    block: 'Yercaud',
+    village: 'Nagaram Tribal Settlement',
+    category: 'Maternal & Child',
+    requestCount: 48,
+    leadReason: 'High antenatal travel difficulty; no nearby ultrasound or pediatrician.',
+    status: 'CAMP_PROPOSED',
+    firstReportedDate: '2026-10-22',
+    urgencyLevel: 'HIGH'
+  },
+  {
+    id: 'ccr-02',
+    requestId: 'CCR-9922',
+    district: 'Salem',
+    block: 'Attur',
+    village: 'Mulluvadi Hamlet',
+    category: 'Eye Care',
+    requestCount: 36,
+    leadReason: 'Elderly population screening needed for cataract detection.',
+    status: 'PENDING_EVALUATION',
+    firstReportedDate: '2026-10-25',
+    urgencyLevel: 'MEDIUM'
+  },
+  {
+    id: 'ccr-03',
+    requestId: 'CCR-9923',
+    district: 'Salem',
+    block: 'Omalur',
+    village: 'Karuppur Rural',
+    category: 'Diabetes & Hypertension',
+    requestCount: 62,
+    leadReason: 'High prevalence of uncontrolled blood pressure in weavers colony.',
+    status: 'PENDING_EVALUATION',
+    firstReportedDate: '2026-10-27',
+    urgencyLevel: 'HIGH'
+  },
+  {
+    id: 'ccr-04',
+    requestId: 'CCR-9924',
+    district: 'Salem',
+    block: 'Gangavalli',
+    village: 'Pachamalai Foothills',
+    category: 'General Medical',
+    requestCount: 29,
+    leadReason: 'Seasonal fever checkups and general physician consultation.',
+    status: 'MERGED',
+    firstReportedDate: '2026-10-18',
+    urgencyLevel: 'MEDIUM'
+  }
+];
+
+export interface FollowUpProgramItem {
+  id: string;
+  programName: string;
+  district: string;
+  targetFacility: string;
+  totalEnrolled: number;
+  dueThisWeek: number;
+  missedCount: number;
+  complianceRate: number;
+  assignedWorker: string;
+  reminderChannel: 'SMS + App' | 'IVR Call' | 'ASHA Home Visit';
+  status: 'OPTIMAL' | 'ATTENTION' | 'CRITICAL';
+}
+
+export const MOCK_FOLLOW_UP_PROGRAMS: FollowUpProgramItem[] = [
+  {
+    id: 'fup-01',
+    programName: 'High-Risk Pregnancy (HRP / ANC) Monitoring',
+    district: 'Salem',
+    targetFacility: 'Government District Hospital — Salem',
+    totalEnrolled: 340,
+    dueThisWeek: 42,
+    missedCount: 3,
+    complianceRate: 92.8,
+    assignedWorker: 'Sister K. Malathi (VHN Supervisor)',
+    reminderChannel: 'SMS + App',
+    status: 'OPTIMAL'
+  },
+  {
+    id: 'fup-02',
+    programName: 'Mission Indradhanush Infant Immunization',
+    district: 'Salem',
+    targetFacility: 'Omalur Block Primary Health Centre',
+    totalEnrolled: 520,
+    dueThisWeek: 76,
+    missedCount: 14,
+    complianceRate: 81.5,
+    assignedWorker: 'ASHA Team Lead — Omalur Block',
+    reminderChannel: 'IVR Call',
+    status: 'ATTENTION'
+  },
+  {
+    id: 'fup-03',
+    programName: 'Type-2 Diabetes & Hypertension Compliance',
+    district: 'Salem',
+    targetFacility: 'Mecheri Upgraded PHC',
+    totalEnrolled: 810,
+    dueThisWeek: 110,
+    missedCount: 28,
+    complianceRate: 74.5,
+    assignedWorker: 'NCD Staff Nurse — Mecheri',
+    reminderChannel: 'ASHA Home Visit',
+    status: 'ATTENTION'
+  },
+  {
+    id: 'fup-04',
+    programName: 'Tuberculosis DOTS Therapy Adherence',
+    district: 'Salem',
+    targetFacility: 'Attur Sub-District Hospital',
+    totalEnrolled: 95,
+    dueThisWeek: 18,
+    missedCount: 1,
+    complianceRate: 94.4,
+    assignedWorker: 'Senior Treatment Supervisor (STS)',
+    reminderChannel: 'SMS + App',
+    status: 'OPTIMAL'
+  }
+];
+
+export interface FacilityAppointmentQueue {
+  id: string;
+  facilityId: string;
+  facilityName: string;
+  district: string;
+  type: string;
+  todayAppointments: number;
+  completedAppointments: number;
+  activeWaitingQueue: number;
+  avgWaitingTimeMinutes: number;
+  congestionLevel: 'NORMAL' | 'HIGH' | 'CONGESTED';
+  availableDoctorsCount: number;
+}
+
+export const MOCK_APPOINTMENTS_QUEUE: FacilityAppointmentQueue[] = [
+  {
+    id: 'q-01',
+    facilityId: 'GDH-SALEM-01',
+    facilityName: 'Government District Hospital — Salem',
+    district: 'Salem',
+    type: 'District Hospital',
+    todayAppointments: 480,
+    completedAppointments: 310,
+    activeWaitingQueue: 65,
+    avgWaitingTimeMinutes: 22,
+    congestionLevel: 'HIGH',
+    availableDoctorsCount: 18
+  },
+  {
+    id: 'q-02',
+    facilityId: 'GMCH-SALEM-02',
+    facilityName: 'Mohan Kumaramangalam Medical College Hospital',
+    district: 'Salem',
+    type: 'Medical College Hospital',
+    todayAppointments: 820,
+    completedAppointments: 540,
+    activeWaitingQueue: 112,
+    avgWaitingTimeMinutes: 34,
+    congestionLevel: 'CONGESTED',
+    availableDoctorsCount: 26
+  },
+  {
+    id: 'q-03',
+    facilityId: 'PHC-OMALUR-01',
+    facilityName: 'Omalur Block Primary Health Centre',
+    district: 'Salem',
+    type: 'Primary Health Centre',
+    todayAppointments: 140,
+    completedAppointments: 105,
+    activeWaitingQueue: 14,
+    avgWaitingTimeMinutes: 12,
+    congestionLevel: 'NORMAL',
+    availableDoctorsCount: 4
+  },
+  {
+    id: 'q-04',
+    facilityId: 'PHC-YERCAUD-01',
+    facilityName: 'Yercaud Tribal Primary Health Centre',
+    district: 'Salem',
+    type: 'Primary Health Centre',
+    todayAppointments: 85,
+    completedAppointments: 68,
+    activeWaitingQueue: 8,
+    avgWaitingTimeMinutes: 9,
+    congestionLevel: 'NORMAL',
+    availableDoctorsCount: 2
+  }
+];
+
+export interface PublicHealthNotice {
+  id: string;
+  noticeId: string;
+  title: string;
+  message: string;
+  category: 'HEALTH_CAMP' | 'DISEASE_ADVISORY' | 'SERVICE_UPDATE' | 'VACCINATION';
+  district: string;
+  targetScope: 'STATEWIDE' | 'DISTRICT_SPECIFIC';
+  targetArea: string;
+  channels: ('App' | 'SMS' | 'IVR')[];
+  recipientCount: number;
+  status: 'DRAFT' | 'APPROVED' | 'PUBLISHED' | 'DELIVERED';
+  publishedAt: string;
+  deliverySuccessRate: number;
+}
+
+export const MOCK_PUBLIC_HEALTH_NOTICES: PublicHealthNotice[] = [
+  {
+    id: 'not-01',
+    noticeId: 'NOT-TN-001',
+    title: 'Statewide Dengue Prevention & Vector Control Advisory',
+    message: 'Monsoon vector source reduction protocol in effect. Eliminate stagnant freshwater containers. Report persistent fever to nearby PHC.',
+    category: 'DISEASE_ADVISORY',
+    district: 'ALL',
+    targetScope: 'STATEWIDE',
+    targetArea: 'All 38 Districts of Tamil Nadu',
+    channels: ['App', 'SMS', 'IVR'],
+    recipientCount: 2400000,
+    status: 'DELIVERED',
+    publishedAt: '2026-10-28 08:00',
+    deliverySuccessRate: 98.4
+  },
+  {
+    id: 'not-02',
+    noticeId: 'NOT-SLM-002',
+    title: 'Free Mega Health & Diagnostic Camp — Mettur Community Hall',
+    message: 'Free comprehensive medical checkup, specialist consultations, diagnostic screening, and free medications at Mettur on Saturday 09:00 AM.',
+    category: 'HEALTH_CAMP',
+    district: 'Salem',
+    targetScope: 'DISTRICT_SPECIFIC',
+    targetArea: 'Mettur Taluk & Surrounding Hamlets',
+    channels: ['App', 'SMS'],
+    recipientCount: 8500,
+    status: 'DELIVERED',
+    publishedAt: '2026-10-30 10:00',
+    deliverySuccessRate: 96.8
+  },
+  {
+    id: 'not-03',
+    noticeId: 'NOT-SLM-003',
+    title: 'Emergency B-Negative Blood Donation Appeal',
+    message: 'Urgent donor requirement for B-Negative blood units at Government District Hospital Blood Bank — Salem.',
+    category: 'SERVICE_UPDATE',
+    district: 'Salem',
+    targetScope: 'DISTRICT_SPECIFIC',
+    targetArea: 'Salem Urban & Omalur Blocks',
+    channels: ['App', 'SMS'],
+    recipientCount: 4200,
+    status: 'PUBLISHED',
+    publishedAt: '2026-10-31 07:30',
+    deliverySuccessRate: 94.2
   }
 ];

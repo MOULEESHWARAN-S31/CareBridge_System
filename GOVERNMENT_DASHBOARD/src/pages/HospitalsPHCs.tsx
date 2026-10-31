@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useHealthData } from '../context/HealthDataContext';
 import { type Facility } from '../data/mockData';
+import { downloadTextFile, escapeCsvValue } from '../utils/download';
 
 export default function GovernmentHospitals() {
   const navigate = useNavigate();
@@ -41,8 +42,24 @@ export default function GovernmentHospitals() {
   }).sort((a, b) => b.patientsToday - a.patientsToday);
 
   const handleExportCSV = () => {
+    const headers = ['Facility ID', 'Facility Name', 'Type', 'District', 'Taluk', 'Officer In Charge', 'Status', 'Patients Today', 'Total Beds', 'Occupied Beds'];
+    const rows = filteredFacilities.map(f => [
+      f.id,
+      f.name,
+      f.type,
+      f.district,
+      f.taluk,
+      f.officerInCharge,
+      f.facilityStatus,
+      f.patientsToday,
+      f.totalBeds,
+      f.occupiedBeds
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(escapeCsvValue).join(',')).join('\r\n');
+    const filename = `TN_Facilities_Report_${Date.now().toString().slice(-4)}.csv`;
+    downloadTextFile(filename, `${csv}\r\n`, 'text/csv;charset=utf-8');
     addAuditLog('Exported Healthcare Facilities Directory CSV', 'Hospital Monitoring', `Total ${filteredFacilities.length} facilities exported.`);
-    setExportNotification(`Successfully generated 'TN_Facilities_Report_${Date.now().toString().slice(-4)}.csv'`);
+    setExportNotification(`Downloaded '${filename}'`);
     setTimeout(() => setExportNotification(null), 4000);
   };
 

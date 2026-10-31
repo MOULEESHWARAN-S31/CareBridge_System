@@ -1,98 +1,131 @@
-import { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Map, AlertTriangle, Activity, Building2, 
-  Pill, BedDouble, Users, BrainCircuit, FileBarChart, LogOut,
+  Pill, Users, BrainCircuit, FileBarChart, LogOut,
   Menu, X, Stethoscope, Bell,
-  PhoneCall, Zap, Award, FileText, ChevronDown,
-  Globe, Sparkles, ShieldCheck
+  FileText,
+  Sparkles, ShieldCheck, Siren, Heart, ArrowRightLeft, Tent,
+  BarChart3, MapPin
 } from 'lucide-react';
-import { useHealthData, type LanguageCode } from '../context/HealthDataContext';
+import { useHealthData } from '../context/HealthDataContext';
 import { GlobalSearchModal } from '../components/GlobalSearchModal';
 import { NotificationsModal } from '../components/NotificationsModal';
 import { ActionWorkflowModal } from '../components/ActionWorkflowModal';
-import { type UserRole } from '../data/mockData';
 import logoImg from '../assets/logo.png';
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [langMenuOpen, setLangMenuOpen] = useState(false);
-  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 1023px)');
+    const handleViewportChange = (event: MediaQueryListEvent) => setIsMobileViewport(event.matches);
+    mediaQuery.addEventListener('change', handleViewportChange);
+    return () => mediaQuery.removeEventListener('change', handleViewportChange);
+  }, []);
+
+  // Handler for CareBridge Logo Sidebar Toggle (Unified on desktop & mobile)
+  const handleToggleSidebar = () => {
+    if (isMobileViewport) {
+      setMobileMenuOpen(open => !open);
+    } else {
+      setSidebarCollapsed(collapsed => !collapsed);
+    }
+  };
 
   const { 
     stateName,
+    userDistrict,
     districtName, setDistrictName, 
     districts,
-    userRole, setUserRole,
+    userRole,
+    userWorkspace, setUserWorkspace,
+    canAccessStateWorkspace,
     officerName,
     demoMode, setDemoMode,
-    language, setLanguage,
-    t,
     notificationsOpen, setNotificationsOpen, 
     notifications,
     ruleAlerts,
     isOfflineMock,
     logout
   } = useHealthData();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!canAccessStateWorkspace && location.pathname.startsWith('/dashboard/state')) {
+      setUserWorkspace('DISTRICT_ADMIN');
+      navigate('/dashboard/district/overview', { replace: true });
+    }
+    if (canAccessStateWorkspace && location.pathname.startsWith('/dashboard/district')) {
+      setUserWorkspace('STATE_ADMIN');
+      navigate('/dashboard/state/overview', { replace: true });
+    }
+  }, [canAccessStateWorkspace, location.pathname, navigate, setUserWorkspace]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
   const activeCriticalAlerts = ruleAlerts.filter(a => a.status === 'Active' && a.category === 'Critical').length;
 
-  // Sidebar Navigation Structure
-  const navSections = [
-    {
-      title: 'Dashboard',
-      items: [
-        { path: '/dashboard', icon: LayoutDashboard, label: t('overview'), exact: true },
-        { path: '/dashboard/district-map', icon: Map, label: 'District Monitoring Map' },
-      ]
-    },
-    {
-      title: 'Healthcare Network',
-      items: [
-        { path: '/dashboard/hospitals', icon: Building2, label: 'Government Hospitals & PHCs' },
-      ]
-    },
-    {
-      title: 'People',
-      items: [
-        { path: '/dashboard/patients', icon: Users, label: t('patients') },
-        { path: '/dashboard/doctors', icon: Stethoscope, label: t('doctors') },
-      ]
-    },
-    {
-      title: 'Services & Logistics',
-      items: [
-        { path: '/dashboard/telemedicine', icon: PhoneCall, label: t('telemedicine') },
-        { path: '/dashboard/diagnostics', icon: Zap, label: t('diagnostics') },
-        { path: '/dashboard/medicine', icon: Pill, label: t('medicines') },
-        { path: '/dashboard/beds-resources', icon: BedDouble, label: t('beds') },
-      ]
-    },
-    {
-      title: 'Analytics & Surveillance',
-      items: [
-        { path: '/dashboard/surveillance', icon: Activity, label: 'Disease Surveillance' },
-        { path: '/dashboard/ai-prediction', icon: BrainCircuit, label: 'Outbreak Prediction' },
-        { path: '/dashboard/accessibility', icon: Award, label: t('analytics') },
-      ]
-    },
-    {
-      title: 'Reports & Audits',
-      items: [
-        { path: '/dashboard/reports', icon: FileBarChart, label: t('reports') },
-        { path: '/dashboard/audit-logs', icon: FileText, label: t('auditLogs') },
-      ]
-    },
-    {
-      title: 'Alerts & Governance',
-      items: [
-        { path: '/dashboard/alerts', icon: AlertTriangle, label: `${t('alerts')} (${activeCriticalAlerts})` },
-        { path: '/dashboard/administration', icon: ShieldCheck, label: 'System Administration' },
-      ]
-    }
-  ];
+  // Workspace-Specific Sidebar Navigation
+  const stateAdminSection = {
+    title: 'State Administration (Tamil Nadu)',
+    items: [
+      { path: '/dashboard/state/overview', icon: LayoutDashboard, label: 'S01: State Overview', exact: true },
+      { path: '/dashboard/state/districts', icon: BarChart3, label: 'S02: District Comparison' },
+      { path: '/dashboard/state/surveillance', icon: Activity, label: 'S03: Disease Surveillance' },
+      { path: '/dashboard/state/facilities', icon: Building2, label: 'S04: Facility Monitoring' },
+      { path: '/dashboard/state/medicines', icon: Pill, label: 'S05: Medicine & Diagnostics' },
+      { path: '/dashboard/state/blood', icon: Siren, label: 'S06: Blood Service Monitoring' },
+      { path: '/dashboard/state/camps', icon: Tent, label: 'S07: Health Camp Oversight' },
+      { path: '/dashboard/state/resources', icon: ArrowRightLeft, label: 'S08: Resource Coordination' },
+      { path: '/dashboard/state/requests', icon: AlertTriangle, label: 'S10: Escalations & Approvals' },
+      { path: '/dashboard/state/announcements', icon: Bell, label: 'S11: State Announcements' },
+      { path: '/dashboard/state/reports', icon: FileBarChart, label: 'S12: State Reports & Audit' },
+    ]
+  };
+
+  const districtAdminSection = {
+    title: `District Administration (${districtName || 'Salem'})`,
+    items: [
+      { path: '/dashboard/district/overview', icon: LayoutDashboard, label: 'D01: District Overview', exact: true },
+      { path: '/dashboard/district/hospitals', icon: Building2, label: 'D02: Hospitals & PHCs' },
+      { path: '/dashboard/district/villages', icon: MapPin, label: 'D03: Village/Block Health' },
+      { path: '/dashboard/district/camps', icon: Tent, label: 'D04: Health Camp Management' },
+      { path: '/dashboard/district/community-requests', icon: Users, label: 'D05: Community Requests' },
+      { path: '/dashboard/district/medicines', icon: Pill, label: 'D06: Medicine Inventory' },
+      { path: '/dashboard/district/diagnostics', icon: Activity, label: 'D07: Diagnostic Availability' },
+      { path: '/dashboard/district/blood', icon: Siren, label: 'D08: Blood Bank Network' },
+      { path: '/dashboard/district/queue', icon: Activity, label: 'D09: Appointments & Queue' },
+      { path: '/dashboard/district/referrals', icon: ArrowRightLeft, label: 'D10: Referral Monitoring' },
+      { path: '/dashboard/district/follow-ups', icon: Heart, label: 'D11: Follow-Up Monitoring' },
+      { path: '/dashboard/district/notifications', icon: Bell, label: 'D12: District Notifications' },
+      { path: '/dashboard/district/reports', icon: FileText, label: 'D14/D15: Reports & Audit' },
+    ]
+  };
+
+  const commonSection = {
+    title: 'Statewide Health Network',
+    items: [
+      { path: '/dashboard', icon: LayoutDashboard, label: 'Command Overview', exact: true },
+      { path: '/dashboard/district-map', icon: Map, label: 'District Monitoring Map' },
+      { path: '/dashboard/hospitals', icon: Building2, label: 'Government Hospitals & PHCs' },
+      { path: '/dashboard/village-map', icon: MapPin, label: 'Village Health Map' },
+      { path: '/dashboard/patients', icon: Users, label: 'Patient Monitoring' },
+      { path: '/dashboard/doctors', icon: Stethoscope, label: 'Doctors & Specialists' },
+      { path: '/dashboard/surveillance', icon: Activity, label: 'Disease Surveillance' },
+      { path: '/dashboard/ai-prediction', icon: BrainCircuit, label: 'Outbreak Prediction' },
+      { path: '/dashboard/alerts', icon: AlertTriangle, label: `Disease Alerts (${activeCriticalAlerts})` },
+      { path: '/dashboard/administration', icon: ShieldCheck, label: 'System Administration' },
+    ]
+  };
+
+  const navSections = userWorkspace === 'STATE_ADMIN'
+    ? [stateAdminSection, districtAdminSection, commonSection]
+    : [districtAdminSection, stateAdminSection, commonSection];
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900 font-sans">
@@ -105,30 +138,43 @@ export default function DashboardLayout() {
         />
       )}
 
-      {/* Sidebar Navigation (Clean White / Login Style) */}
+      {/* Sidebar Navigation */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 text-slate-800 flex flex-col h-full shadow-lg transition-transform duration-300 ease-in-out flex-shrink-0
+        fixed lg:static inset-y-0 left-0 z-40 ${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-slate-200 text-slate-800 flex flex-col h-full shadow-lg transition-transform duration-300 ease-in-out flex-shrink-0
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         {/* Sidebar Header: CareBridge Emblem */}
         <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/dashboard')}>
-            <img 
-              src={logoImg} 
-              alt="CareBridge Logo" 
-              className="w-10 h-10 object-contain rounded-xl shadow-xs flex-shrink-0" 
+          <button
+            type="button"
+            onClick={handleToggleSidebar}
+            aria-label={isMobileViewport
+              ? (mobileMenuOpen ? 'Close sidebar' : 'Open sidebar')
+              : (sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar')}
+            aria-expanded={isMobileViewport ? mobileMenuOpen : !sidebarCollapsed}
+            title={isMobileViewport
+              ? (mobileMenuOpen ? 'Close sidebar' : 'Open sidebar')
+              : (sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar')}
+            className="flex items-center gap-2.5 cursor-pointer text-left focus:outline-none"
+          >
+            <img
+              src={logoImg}
+              alt="CareBridge Logo"
+              className="w-10 h-10 object-contain rounded-xl shadow-xs flex-shrink-0 hover:scale-105 transition-transform"
             />
-            <div>
-              <div className="flex items-center gap-1">
-                <span className="text-[9px] font-extrabold tracking-widest text-teal-800 uppercase block">Govt of Tamil Nadu</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+            {!sidebarCollapsed && (
+              <div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] font-extrabold tracking-widest text-teal-800 uppercase block">Govt of Tamil Nadu</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                </div>
+                <h1 className="font-black text-sm leading-tight tracking-tight text-slate-900">
+                  CareBridge Portal
+                </h1>
               </div>
-              <h1 className="font-black text-sm leading-tight tracking-tight text-slate-900">
-                CareBridge Portal
-              </h1>
-            </div>
-          </div>
-          <button 
+            )}
+          </button>
+          <button
             onClick={() => setMobileMenuOpen(false)}
             className="lg:hidden p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100"
           >
@@ -168,37 +214,42 @@ export default function DashboardLayout() {
           ))}
         </nav>
 
-        {/* Sidebar Footer: Logout */}
-        <div className="p-3 border-t border-slate-200 bg-slate-50">
-          <button 
+        {/* Sidebar Footer: Officer & Logout */}
+        <div className="p-3 border-t border-slate-200 bg-slate-50/50 flex flex-col gap-2">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+              <span className="text-[11px] font-semibold text-slate-500">Connected to NIC Portal</span>
+            </div>
+            <span className="text-[10px] font-mono text-slate-400">v2.6</span>
+          </div>
+
+          <button
             onClick={logout}
-            className="flex items-center justify-between px-3 py-2 w-full rounded-xl text-xs font-bold text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-700 hover:bg-rose-50 hover:text-rose-800 transition-colors border border-rose-200 cursor-pointer"
           >
-            <span className="flex items-center gap-2">
-              <LogOut className="w-4 h-4" />
-              <span>{t('logout')}</span>
-            </span>
-            <span className="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-700">Exit</span>
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-[#f8fafc]">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         
-        {/* Top Header (Clean White / Login Style) */}
-        <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 z-20 shadow-sm flex-shrink-0 gap-3">
-          
-          {/* Left: Mobile Toggle, Portal Branding with Logo & Location Breadcrumbs */}
+        {/* Top Header */}
+        <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 z-20 shadow-xs flex-shrink-0">
+
+          {/* Left: Mobile Toggle & Location Breadcrumb */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Government of Tamil Nadu – CareBridge Portal Branding with CareBridge Logo */}
+            {/* Government of Tamil Nadu — CareBridge Portal Branding with CareBridge Logo */}
             <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/dashboard')}>
               <img 
                 src={logoImg} 
@@ -213,7 +264,7 @@ export default function DashboardLayout() {
 
             <div className="hidden md:block h-6 w-px bg-slate-200" />
 
-            {/* Location Breadcrumb: State → District */}
+            {/* Location Breadcrumb: State -> District */}
             <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
               <Map className="w-3.5 h-3.5 text-teal-700 flex-shrink-0" />
               <span className="font-semibold text-slate-600 hidden sm:inline">{stateName}</span>
@@ -223,17 +274,45 @@ export default function DashboardLayout() {
                 onChange={(e) => setDistrictName(e.target.value)} 
                 className="border-none bg-transparent font-bold text-teal-800 focus:ring-0 cursor-pointer outline-none"
               >
-                {districts.map(d => (
+                {(canAccessStateWorkspace ? districts : districts.filter(d => d.name === userDistrict)).map(d => (
                   <option key={d.id} value={d.name} className="bg-white text-slate-900">
-                    {d.name} District {d.status === 'Critical' ? '🔴' : d.status === 'Attention' ? '🟡' : '🟢'}
+                    {d.name} District {d.status === 'Critical' ? '⚠️' : d.status === 'Attention' ? '⚡' : '✅'}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Right Header Controls: Demo Toggle, Language, Notifications, Profile */}
+          {/* Right Header Controls: Workspace Switcher, Demo, Notifications, Profile */}
           <div className="flex items-center gap-2 sm:gap-3">
+
+            {/* State Admin / District Admin Workspace Switcher */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1">
+              <button
+                type="button"
+                onClick={() => setUserWorkspace('STATE_ADMIN')}
+                disabled={!canAccessStateWorkspace}
+                title={!canAccessStateWorkspace ? 'State workspace is not assigned to this account' : 'State Admin'}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  userWorkspace === 'STATE_ADMIN' && canAccessStateWorkspace
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                State Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserWorkspace('DISTRICT_ADMIN')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  userWorkspace === 'DISTRICT_ADMIN'
+                    ? 'bg-teal-700 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                District Admin
+              </button>
+            </div>
 
             {/* Demo Data Toggle */}
             <div 
@@ -246,7 +325,7 @@ export default function DashboardLayout() {
               title="Toggle Simulated Demonstration Data"
             >
               <Sparkles className="w-3 h-3 text-teal-600" />
-              <span>{t('demoMode')}</span>
+              <span>Demo Mode</span>
             </div>
 
             {/* Notifications Button */}
@@ -263,87 +342,16 @@ export default function DashboardLayout() {
               )}
             </button>
 
-            {/* Language Switcher Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setLangMenuOpen(!langMenuOpen)}
-                className="flex items-center gap-1 bg-slate-50 hover:bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 transition-colors"
-                title="Select Language"
-              >
-                <Globe className="w-3.5 h-3.5 text-slate-500" />
-                <span className="uppercase">{language}</span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
-              </button>
-
-              {langMenuOpen && (
-                <div className="absolute right-0 mt-1 w-32 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 animate-fadeIn text-xs">
-                  {[
-                    { code: 'en' as LanguageCode, label: 'English' },
-                    { code: 'ta' as LanguageCode, label: 'தமிழ்' },
-                    { code: 'hi' as LanguageCode, label: 'हिन्दी' },
-                  ].map(l => (
-                    <button
-                      key={l.code}
-                      onClick={() => {
-                        setLanguage(l.code);
-                        setLangMenuOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 hover:bg-slate-100 font-medium transition-colors flex items-center justify-between ${
-                        language === l.code ? 'text-teal-700 font-bold bg-teal-50' : 'text-slate-700'
-                      }`}
-                    >
-                      <span>{l.label}</span>
-                      {language === l.code && <span className="text-teal-700 text-xs">✓</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Role Switcher Pill */}
-            <div className="relative">
-              <button
-                onClick={() => setRoleMenuOpen(!roleMenuOpen)}
-                className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs transition-colors"
-                title="Active Government Role"
-              >
+            {/* Server-authoritative Government role */}
+            <div
+              className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-xs"
+              title="Server-authoritative Government role"
+            >
                 <div className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></div>
                 <div className="text-left hidden sm:block">
                   <span className="font-extrabold text-slate-900 block leading-tight">{officerName}</span>
                   <span className="text-[10px] text-slate-500 block leading-tight">{userRole}</span>
                 </div>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
-              </button>
-
-              {roleMenuOpen && (
-                <div className="absolute right-0 mt-1 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-fadeIn text-xs space-y-1">
-                  <div className="px-2 py-1 text-[10px] font-extrabold uppercase text-slate-400 border-b border-slate-100">
-                    Switch Active Jurisdiction
-                  </div>
-                  {(['State Administrator', 'District Administrator', 'Hospital Administrator', 'Doctor'] as UserRole[]).map((role) => (
-                    <button
-                      key={role}
-                      onClick={() => {
-                        setUserRole(role);
-                        setRoleMenuOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-xl transition-all flex items-center justify-between ${
-                        userRole === role 
-                          ? 'bg-teal-50 text-teal-800 font-bold border border-teal-200' 
-                          : 'text-slate-700 hover:bg-slate-100'
-                      }`}
-                    >
-                      <div>
-                        <span className="block font-bold">{role}</span>
-                        <span className="text-[10px] text-slate-500">
-                          {role === 'State Administrator' ? 'Statewide Supervision' : `${districtName} Scope`}
-                        </span>
-                      </div>
-                      {userRole === role && <span className="text-teal-700 font-bold">✓</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
           </div>

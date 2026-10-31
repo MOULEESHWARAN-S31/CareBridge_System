@@ -27,12 +27,35 @@ function parseJwt(token) {
 
 let accessDeniedInfo = null;
 
-function checkAuthFromUrlOrStorage() {
+async function exchangeHandoff(code, destination) {
+  const response = await fetch('http://localhost:5000/api/auth/handoff/exchange', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, destination })
+  });
+  const data = await response.json();
+  if (!response.ok || !data.token) throw new Error(data.error || 'Secure login handoff failed.');
+  localStorage.setItem('cb_auth_token', data.token);
+  if (data.user) localStorage.setItem('cb_auth_user', JSON.stringify(data.user));
+}
+
+async function checkAuthFromUrlOrStorage() {
   accessDeniedInfo = null;
   const params = new URLSearchParams(window.location.search);
   const hashParams = new URLSearchParams(window.location.hash.startsWith('#?') ? window.location.hash.substring(2) : '');
   const urlToken = params.get('token') || hashParams.get('token');
   const urlUserStr = params.get('user') || hashParams.get('user');
+  const handoffCode = params.get('handoff');
+
+  if (handoffCode) {
+    window.history.replaceState({}, document.title, window.location.pathname + '#admin');
+    try {
+      await exchangeHandoff(handoffCode, 'admin');
+    } catch (error) {
+      accessDeniedInfo = { role: 'UNKNOWN', message: error.message };
+      return false;
+    }
+  }
 
   // Ingest URL token handoff
   if (urlToken) {
@@ -141,12 +164,12 @@ function createAccessDeniedElement(info) {
   return wrapper;
 }
 
-function renderApp() {
+async function renderApp() {
   const root = document.getElementById('app');
   if (!root) return;
   root.innerHTML = '';
 
-  const isAuth = checkAuthFromUrlOrStorage();
+  const isAuth = await checkAuthFromUrlOrStorage();
 
   if (accessDeniedInfo) {
     root.appendChild(createAccessDeniedElement(accessDeniedInfo));

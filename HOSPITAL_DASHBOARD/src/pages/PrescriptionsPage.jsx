@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, FileText, CheckCircle2, Clock, Eye, Filter } from 'lucide-react';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
 
 const DUMMY_PRESCRIPTIONS = [
   {

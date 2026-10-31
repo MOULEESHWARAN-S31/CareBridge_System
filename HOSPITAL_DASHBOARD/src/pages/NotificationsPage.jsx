@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Bell, CheckCheck, Trash2, AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
 import { notifications as initialNotifs } from '../data/mockData';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
 
 const typeIcons = {
   success: { icon: CheckCircle, color: '#10B981', bg: '#D1FAE5' },

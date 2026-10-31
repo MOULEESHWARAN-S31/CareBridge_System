@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:care_bridge/app/theme/app_colors.dart';
 import 'package:care_bridge/app/theme/app_dimensions.dart';
 import 'package:care_bridge/app/theme/app_text_styles.dart';
+import 'package:care_bridge/core/localization/app_localizations.dart';
 import 'package:care_bridge/core/services/session_service.dart';
 import 'package:care_bridge/shared/widgets/care_bridge_button.dart';
 import 'package:care_bridge/shared/widgets/care_bridge_card.dart';
@@ -32,6 +33,8 @@ class AppointmentSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final langCode = loc.locale.languageCode;
     final controller = BookingScope.of(context);
     final district = controller.selectedDistrict;
     final hospital = controller.selectedHospital;
@@ -46,7 +49,7 @@ class AppointmentSummaryScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Book Appointment'),
+        title: Text(loc.bookAppointmentTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: onBack,
@@ -116,7 +119,7 @@ class AppointmentSummaryScreen extends StatelessWidget {
 
                     // Appointment Overview Card
                     CareBridgeCard(
-                      title: 'Appointment Summary',
+                      title: loc.summaryStep,
                       leadingIcon: const Icon(Icons.medical_services_outlined, color: AppColors.primary),
                       child: Column(
                         children: [
@@ -129,15 +132,15 @@ class AppointmentSummaryScreen extends StatelessWidget {
                           _buildDetailRow(
                             icon: Icons.local_hospital_rounded,
                             label: 'Hospital',
-                            value: hospital?.name ?? '-',
+                            value: hospital?.getDisplayName(langCode) ?? hospital?.name ?? '-',
                             subValue: hospital?.address,
                           ),
                           const Divider(height: 16),
                           _buildDetailRow(
                             icon: Icons.person_rounded,
                             label: 'Doctor',
-                            value: doctor?.name ?? '-',
-                            subValue: doctor?.specialization,
+                            value: doctor?.getDisplayName(langCode) ?? doctor?.name ?? '-',
+                            subValue: doctor?.getDisplaySpecialization(langCode) ?? doctor?.specialization,
                           ),
                           const Divider(height: 16),
                           _buildDetailRow(
@@ -169,7 +172,7 @@ class AppointmentSummaryScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CareBridgeButton.outlined(
-                      label: 'Back',
+                      label: loc.back,
                       onPressed: controller.isBookingInProcess ? null : onBack,
                     ),
                   ),

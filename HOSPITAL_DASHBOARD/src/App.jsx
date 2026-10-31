@@ -3,50 +3,50 @@ import { useAuth } from './context/AuthContext';
 
 // Auth & Layout
 import LoginPage from './pages/LoginPage';
-import DashboardLayout from './layouts/DashboardLayout';
+import DashboardLayout from './components/layout/DashboardLayout/DashboardLayout';
 
 // Role Dashboards
-import AdminDashboard from './pages/dashboards/AdminDashboard';
-import DoctorDashboard from './pages/dashboards/DoctorDashboard';
-import NurseDashboard from './pages/dashboards/NurseDashboard';
-import ReceptionDashboard from './pages/dashboards/ReceptionDashboard';
-import LabDashboard from './pages/dashboards/LabDashboard';
-import PharmacyDashboard from './pages/dashboards/PharmacyDashboard';
-import BillingDashboard from './pages/dashboards/BillingDashboard';
-import RecordsDashboard from './pages/dashboards/RecordsDashboard';
-import EmergencyDashboard from './pages/dashboards/EmergencyDashboard';
-import HRDashboard from './pages/dashboards/HRDashboard';
+import AdminDashboard from './roles/hospital-admin/AdminDashboard';
+import DoctorDashboard from './roles/doctor/DoctorDashboard';
+import NurseDashboard from './roles/nurse/NurseDashboard';
+import ReceptionDashboard from './roles/receptionist/ReceptionDashboard';
+import LabDashboard from './roles/lab-staff/LabDashboard';
+import PharmacyDashboard from './roles/pharmacist/PharmacyDashboard';
+import BillingDashboard from './roles/billing-staff/BillingDashboard';
+import RecordsDashboard from './roles/records-staff/RecordsDashboard';
+import EmergencyDashboard from './roles/emergency-staff/EmergencyDashboard';
+import HRDashboard from './roles/hr-manager/HRDashboard';
 
 // Shared Pages
 import PatientsPage from './pages/PatientsPage';
 import PatientProfile from './pages/PatientProfile';
 import AppointmentsPage from './pages/AppointmentsPage';
-import DoctorsPage from './pages/DoctorsPage';
-import DoctorProfile from './pages/DoctorProfile';
-import StaffPage from './pages/StaffPage';
-import OPDPage from './pages/OPDPage';
-import ConsultationsPage from './pages/ConsultationsPage';
-import EmergencyPage from './pages/EmergencyPage';
+import DoctorsPage from './roles/hospital-admin/DoctorsPage';
+import DoctorProfile from './roles/doctor/DoctorProfile';
+import StaffPage from './roles/hospital-admin/StaffPage';
+import OPDPage from './roles/receptionist/OPDPage';
+import ConsultationsPage from './roles/doctor/ConsultationsPage';
+import EmergencyPage from './roles/emergency-staff/EmergencyPage';
 import WardsPage from './pages/WardsPage';
-import PharmacyPage from './pages/PharmacyPage';
+import PharmacyPage from './roles/pharmacist/PharmacyPage';
 import InventoryPage from './pages/InventoryPage';
-import MedicalRecordsPage from './pages/MedicalRecordsPage';
+import MedicalRecordsPage from './roles/records-staff/MedicalRecordsPage';
 import ReferralsPage from './pages/ReferralsPage';
 import PrescriptionsPage from './pages/PrescriptionsPage';
-import DiagnosticsPage from './pages/DiagnosticsPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import AmbulancePage from './pages/AmbulancePage';
+import DiagnosticsPage from './roles/lab-staff/DiagnosticsPage';
+import AnalyticsPage from './roles/hospital-admin/AnalyticsPage';
+import AmbulancePage from './roles/hospital-admin/AmbulancePage';
 import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
-import BillingPage from './pages/BillingPage';
-import HRPage from './pages/HRPage';
-import AuditLogsPage from './pages/AuditLogsPage';
-import DepartmentsPage from './pages/DepartmentsPage';
+import BillingPage from './roles/billing-staff/BillingPage';
+import HRPage from './roles/hr-manager/HRPage';
+import AuditLogsPage from './roles/hospital-admin/AuditLogsPage';
+import DepartmentsPage from './roles/hospital-admin/DepartmentsPage';
 import TelemedicinePage from './pages/TelemedicinePage';
-import ShiftsPage from './pages/ShiftsPage';
-import DataSyncPage from './pages/DataSyncPage';
-import ReportsPage from './pages/ReportsPage';
+import ShiftsPage from './roles/hospital-admin/ShiftsPage';
+import DataSyncPage from './roles/hospital-admin/DataSyncPage';
+import ReportsPage from './roles/hospital-admin/ReportsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function AccessDeniedScreen({ message, redirectUrl, redirectLabel, secondaryUrl, secondaryLabel }) {
@@ -138,7 +138,7 @@ function AccessDeniedScreen({ message, redirectUrl, redirectLabel, secondaryUrl,
 // Validates authentication, cross-role protection, and role match.
 // ─────────────────────────────────────────────────────────────────
 function RequireAuth({ role }) {
-  const { isAuthenticated, user, accessDenied } = useAuth();
+  const { isAuthenticated, isLoading, user, accessDenied } = useAuth();
 
   if (accessDenied?.isDenied) {
     return (
@@ -150,14 +150,25 @@ function RequireAuth({ role }) {
     );
   }
 
+  if (isLoading) return null;
+
   if (!isAuthenticated || !user) {
     window.location.replace('http://localhost:3000');
     return null;
   }
 
   const isRoleMatch = !role || user?.roleId === role ||
-    (role === 'receptionist' && user?.roleId === 'reception') ||
-    (role === 'reception' && user?.roleId === 'receptionist');
+    (role === 'admin' && (user?.roleId === 'hospital_admin' || user?.role === 'HOSPITAL_ADMIN')) ||
+    (role === 'doctor' && (user?.roleId === 'doctor' || user?.role === 'DOCTOR')) ||
+    (role === 'nurse' && (user?.roleId === 'nurse' || user?.role === 'NURSE')) ||
+    (role === 'receptionist' && (user?.roleId === 'reception' || user?.role === 'RECEPTIONIST')) ||
+    (role === 'reception' && (user?.roleId === 'receptionist' || user?.role === 'RECEPTIONIST')) ||
+    (role === 'pharmacy' && (user?.roleId === 'pharmacist' || user?.role === 'PHARMACIST')) ||
+    (role === 'lab' && (user?.roleId === 'lab_staff' || user?.role === 'LAB_STAFF')) ||
+    (role === 'billing' && (user?.roleId === 'billing_staff' || user?.role === 'BILLING_STAFF')) ||
+    (role === 'records' && (user?.roleId === 'records_staff' || user?.role === 'RECORDS_STAFF')) ||
+    (role === 'emergency' && (user?.roleId === 'emergency_staff' || user?.role === 'EMERGENCY_STAFF')) ||
+    (role === 'hr' && (user?.roleId === 'hr_manager' || user?.role === 'HR_MANAGER'));
 
   if (!isRoleMatch) {
     return (
@@ -176,7 +187,7 @@ function RequireAuth({ role }) {
 // RootRedirect — sends authenticated user to their dashboard
 // ─────────────────────────────────────────────────────────────────
 function RootRedirect() {
-  const { isAuthenticated, user, accessDenied } = useAuth();
+  const { isAuthenticated, isLoading, user, accessDenied } = useAuth();
 
   if (accessDenied?.isDenied) {
     return (
@@ -187,6 +198,8 @@ function RootRedirect() {
       />
     );
   }
+
+  if (isLoading) return null;
 
   if (isAuthenticated && user?.dashboardPath) {
     return <Navigate to={user.dashboardPath} replace />;
@@ -247,7 +260,7 @@ export default function App() {
             <Route path="wards" element={<WardsPage />} />
             <Route path="emergency" element={<EmergencyPage />} />
             <Route path="ambulance" element={<AmbulancePage />} />
-            <Route path="billing" element={<InventoryPage />} />
+            <Route path="billing" element={<BillingPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="departments" element={<DepartmentsPage />} />
             <Route path="telemedicine" element={<TelemedicinePage />} />
@@ -323,6 +336,9 @@ export default function App() {
             <Route path="op-card" element={<ReceptionDashboard initialTab="op-card" />} />
             <Route path="appointments" element={<ReceptionDashboard initialTab="appointments" />} />
             <Route path="register" element={<ReceptionDashboard initialTab="add-patient" />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Route>
 
@@ -401,7 +417,7 @@ export default function App() {
             <Route path="history" element={<MedicalRecordsPage />} />
             <Route path="documents" element={<MedicalRecordsPage />} />
             <Route path="requests" element={<MedicalRecordsPage />} />
-            <Route path="access-log" element={<SettingsPage />} />
+            <Route path="access-log" element={<AuditLogsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="notifications" element={<NotificationsPage />} />

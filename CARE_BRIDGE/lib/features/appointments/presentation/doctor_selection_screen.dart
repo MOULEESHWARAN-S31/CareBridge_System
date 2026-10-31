@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:care_bridge/app/theme/app_colors.dart';
 import 'package:care_bridge/app/theme/app_dimensions.dart';
 import 'package:care_bridge/app/theme/app_text_styles.dart';
+import 'package:care_bridge/core/localization/app_localizations.dart';
 import 'package:care_bridge/shared/widgets/care_bridge_button.dart';
 import 'package:care_bridge/shared/widgets/care_bridge_card.dart';
 import 'package:care_bridge/shared/widgets/care_bridge_state_widgets.dart';
@@ -19,13 +20,15 @@ class DoctorSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final langCode = loc.locale.languageCode;
     final controller = BookingScope.of(context);
-    final hospitalName = controller.selectedHospital?.name ?? '';
+    final hospitalName = controller.selectedHospital?.getDisplayName(langCode) ?? controller.selectedHospital?.name ?? '';
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Book Appointment'),
+        title: Text(loc.bookAppointmentTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: onBack,
@@ -38,11 +41,11 @@ class DoctorSelectionScreen extends StatelessWidget {
             _buildProgressHeader('Step 3 of 5', 'Select Doctor at $hospitalName'),
             Expanded(
               child: controller.isLoadingDoctors
-                  ? const CareBridgeLoading(message: 'Loading doctors...')
+                  ? CareBridgeLoading(message: loc.loadingDoctors)
                   : controller.doctors.isEmpty
-                      ? const CareBridgeEmptyState(
-                          title: 'No Doctors Available',
-                          description: 'No available doctors found for this hospital.',
+                      ? CareBridgeEmptyState(
+                          title: loc.noDoctorsAvailable,
+                          description: loc.noDoctorsAvailableDesc,
                           icon: Icons.person_off_outlined,
                         )
                       : ListView.separated(
@@ -54,8 +57,8 @@ class DoctorSelectionScreen extends StatelessWidget {
                             final isSelected = controller.selectedDoctor == doctor;
 
                             return CareBridgeCard(
-                              title: doctor.name,
-                              subtitle: doctor.specialization,
+                              title: doctor.getDisplayName(langCode),
+                              subtitle: doctor.getDisplaySpecialization(langCode),
                               leadingIcon: CircleAvatar(
                                 radius: 20.0,
                                 backgroundColor: isSelected ? AppColors.primary : AppColors.primaryLight,
@@ -77,7 +80,7 @@ class DoctorSelectionScreen extends StatelessWidget {
                                   ? AppColors.primaryLight.withValues(alpha: 0.5)
                                   : AppColors.surface,
                               child: Text(
-                                '${doctor.qualification} • ${doctor.experienceYears} yrs exp',
+                                '${doctor.qualification} • ${doctor.experienceYears} ${loc.yearsExpLabel}',
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.textSecondary,
                                 ),
@@ -97,7 +100,7 @@ class DoctorSelectionScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CareBridgeButton.outlined(
-                      label: 'Back',
+                      label: loc.back,
                       onPressed: onBack,
                     ),
                   ),
@@ -105,7 +108,7 @@ class DoctorSelectionScreen extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: CareBridgeButton.primary(
-                      label: 'Continue to Schedule',
+                      label: loc.continueToSchedule,
                       onPressed: controller.canProceedToDateTime ? onNext : null,
                     ),
                   ),

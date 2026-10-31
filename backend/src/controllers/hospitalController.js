@@ -1,9 +1,11 @@
 const { query } = require('../config/db');
+const { localizeHospital, localizeDoctor } = require('../services/translationDbService');
 
 // List hospitals and facilities with optional filters
 async function getHospitals(req, res, next) {
   try {
     const { district, type, status, search, lat, lng } = req.query;
+    const locale = req.query.locale || req.headers['accept-language'] || 'en';
 
     let sql = `
       SELECT id, hospital_id, name, type, district, city, address,
@@ -57,7 +59,8 @@ async function getHospitals(req, res, next) {
     }
 
     const result = await query(sql, params);
-    res.json(result.rows);
+    const localized = result.rows.map(hosp => localizeHospital(hosp, locale));
+    res.json(localized);
   } catch (err) {
     next(err);
   }
@@ -67,6 +70,7 @@ async function getHospitals(req, res, next) {
 async function getHospitalById(req, res, next) {
   try {
     const { id } = req.params;
+    const locale = req.query.locale || req.headers['accept-language'] || 'en';
 
     const hospResult = await query(
       'SELECT * FROM hospitals WHERE hospital_id = $1 OR id::text = $1 LIMIT 1;',
@@ -74,7 +78,12 @@ async function getHospitalById(req, res, next) {
     );
 
     if (hospResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Hospital/facility not found.' });
+      return res.status(404).json({
+        success: false,
+        code: 'HOSPITAL_NOT_FOUND',
+        messageKey: 'hospitalNotFound',
+        error: 'Hospital/facility not found.'
+      });
     }
 
     const hospital = hospResult.rows[0];
@@ -85,8 +94,8 @@ async function getHospitalById(req, res, next) {
     );
 
     res.json({
-      ...hospital,
-      doctors: docsResult.rows
+      ...localizeHospital(hospital, locale),
+      doctors: docsResult.rows.map(doc => localizeDoctor(doc, locale))
     });
   } catch (err) {
     next(err);
@@ -107,7 +116,7 @@ async function createHospital(req, res, next) {
     }
 
     const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20);
-    const hospitalId = `fac_${slug}_${Math.floor(100 + Math.random() * 900)}`;
+    const hospitalId = `fac_${slug}_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`;
 
     const lat = latitude !== undefined ? parseFloat(latitude) : 11.6643;
     const lng = longitude !== undefined ? parseFloat(longitude) : 78.1460;

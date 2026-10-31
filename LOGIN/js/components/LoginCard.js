@@ -6,7 +6,7 @@ import {
 import { createRememberForgot } from './RememberForgot.js';
 import { createLoginButton } from './LoginButton.js';
 import { createSecurityNotice } from './SecurityNotice.js';
-import { validateLoginForm, authenticateUser, DEMO_CREDENTIALS } from '../auth.js';
+import { validateLoginForm, authenticateUser, createLoginHandoff, DEMO_CREDENTIALS } from '../auth.js';
 
 /**
  * CareBridge Hospital Dashboard — LoginCard Component
@@ -154,31 +154,42 @@ export function createLoginCard(onForgotPasswordClick) {
           HR_MANAGER: { path: '/hr/dashboard', label: 'HR Manager' }
         };
 
+        let destination;
+        let targetPath;
+        let targetOrigin;
         if (userRole === 'ADMIN') {
+          destination = 'admin';
+          targetPath = '/?handoff=';
+          targetOrigin = 'http://localhost:5173';
           showAlert(`Authenticated as Administrator (${result.user.name || result.user.username}). Redirecting to Admin Dashboard...`, 'success');
-          loginButtonComp.setDisabled(true);
-          const redirectUrl = `http://localhost:5173/?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, 350);
         } else if (userRole === 'GOVERNMENT') {
+          destination = 'government';
+          targetPath = '/dashboard?handoff=';
+          targetOrigin = 'http://localhost:5174';
           showAlert(`Authenticated as Government Officer (${result.user.name || result.user.username}). Redirecting to Government Dashboard...`, 'success');
-          loginButtonComp.setDisabled(true);
-          const redirectUrl = `http://localhost:5174/dashboard?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, 350);
         } else if (HOSPITAL_REDIRECTS[userRole]) {
           const target = HOSPITAL_REDIRECTS[userRole];
+          destination = 'hospital';
+          targetPath = `${target.path}?handoff=`;
+          targetOrigin = 'http://localhost:5175';
           showAlert(`Authenticated as ${target.label} (${result.user.name || result.user.username}). Redirecting to Hospital Dashboard...`, 'success');
-          loginButtonComp.setDisabled(true);
-          const redirectUrl = `http://localhost:5175${target.path}?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, 350);
         } else {
           showAlert(`Access Denied: Role '${result.user.role}' is not authorized.`, 'error');
           loginButtonComp.setLoading(false);
+        }
+
+        if (destination) {
+          loginButtonComp.setDisabled(true);
+          try {
+            const handoffCode = await createLoginHandoff(result.token, result.user, destination);
+            const redirectUrl = `${targetOrigin}${targetPath}${encodeURIComponent(handoffCode)}`;
+            setTimeout(() => {
+              window.location.href = redirectUrl;
+            }, 350);
+          } catch (handoffError) {
+            showAlert(handoffError.message, 'error');
+            loginButtonComp.setLoading(false);
+          }
         }
       } else {
         showAlert(result.errorMessage, 'error');

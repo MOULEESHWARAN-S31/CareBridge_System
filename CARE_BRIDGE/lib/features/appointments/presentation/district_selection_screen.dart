@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:care_bridge/app/theme/app_colors.dart';
 import 'package:care_bridge/app/theme/app_dimensions.dart';
 import 'package:care_bridge/app/theme/app_text_styles.dart';
+import 'package:care_bridge/core/localization/app_localizations.dart';
 import 'package:care_bridge/shared/widgets/care_bridge_button.dart';
 import 'package:care_bridge/shared/widgets/care_bridge_card.dart';
 import 'package:care_bridge/shared/widgets/care_bridge_state_widgets.dart';
@@ -17,12 +18,13 @@ class DistrictSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final controller = BookingScope.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Book Appointment'),
+        title: Text(loc.bookAppointmentTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.of(context).pop(),
@@ -35,10 +37,10 @@ class DistrictSelectionScreen extends StatelessWidget {
             _buildProgressHeader('Step 1 of 5', 'Select District'),
             Expanded(
               child: controller.isLoadingDistricts
-                  ? const CareBridgeLoading(message: 'Loading districts...')
+                  ? CareBridgeLoading(message: loc.loadingDistricts)
                   : controller.districts.isEmpty
-                      ? const CareBridgeEmptyState(
-                          title: 'No Districts Available',
+                      ? CareBridgeEmptyState(
+                          title: loc.noDistrictsFound,
                           description: 'Please check back later or refresh.',
                           icon: Icons.map_outlined,
                         )
@@ -88,7 +90,7 @@ class DistrictSelectionScreen extends StatelessWidget {
                 border: Border(top: BorderSide(color: AppColors.borderLight)),
               ),
               child: CareBridgeButton.primary(
-                label: 'Continue to Hospitals',
+                label: loc.continueBtn,
                 isFullWidth: true,
                 onPressed: controller.canProceedToHospital ? onNext : null,
               ),

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { PackageOpen, AlertTriangle, Search, Plus, RefreshCw, TrendingDown } from 'lucide-react';
 import { inventory } from '../data/mockData';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
 
 const statusStyle = {
   'Available':    { color: '#10B981', bg: '#D1FAE5', badge: 'badge-success' },

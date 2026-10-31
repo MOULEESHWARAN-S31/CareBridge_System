@@ -29,11 +29,12 @@ class _AbhaProfileSelectScreenState extends State<AbhaProfileSelectScreen> {
   bool _isSubmitting = false;
 
   Future<void> _launchAbhaRegistration() async {
+    final loc = AppLocalizations.of(context);
     final Uri url = Uri.parse('https://abha.abdm.gov.in/abha/v3/register');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open ABHA registration page')),
+          SnackBar(content: Text(loc.couldNotOpenAbhaUrl)),
         );
       }
     }
@@ -80,7 +81,7 @@ class _AbhaProfileSelectScreenState extends State<AbhaProfileSelectScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Connect ABHA Card'),
+        title: Text(localizations.connectAbhaCard),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,

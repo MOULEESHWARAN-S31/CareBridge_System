@@ -3,6 +3,7 @@ import {
   ShieldCheck, Search, Download, Lock, CheckCircle2
 } from 'lucide-react';
 import { useHealthData } from '../context/HealthDataContext';
+import { downloadTextFile, escapeCsvValue } from '../utils/download';
 
 export default function AuditLogs() {
   const { auditLogs, addAuditLog } = useHealthData();
@@ -33,8 +34,23 @@ export default function AuditLogs() {
   });
 
   const handleExportAuditLogs = () => {
+    const headers = ['Log ID', 'User', 'Role', 'Action', 'Module', 'Timestamp', 'IP Address', 'Result', 'Details'];
+    const rows = filteredLogs.map(log => [
+      log.id,
+      log.user,
+      log.role,
+      log.action,
+      log.module,
+      log.timestamp,
+      log.ipAddress,
+      log.result,
+      log.details
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(escapeCsvValue).join(',')).join('\r\n');
+    const filename = `CareBridge_Audit_Trail_${Date.now().toString().slice(-4)}.csv`;
+    downloadTextFile(filename, `${csv}\r\n`, 'text/csv;charset=utf-8');
     addAuditLog('Exported Immutable System Audit Logs (CSV)', 'System Security', `Total ${filteredLogs.length} audit entries exported.`);
-    setDownloadNotice(`Exported 'CareBridge_Audit_Trail_${Date.now().toString().slice(-4)}.csv'`);
+    setDownloadNotice(`Downloaded '${filename}'`);
     setTimeout(() => setDownloadNotice(null), 5000);
   };
 

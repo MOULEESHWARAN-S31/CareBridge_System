@@ -3,6 +3,7 @@ import {
   FileBarChart, Download, FileText, CheckCircle2, Clock, Sparkles, RefreshCw, Printer
 } from 'lucide-react';
 import { useHealthData } from '../context/HealthDataContext';
+import { downloadTextFile, escapeCsvValue } from '../utils/download';
 
 export default function Reports() {
   const { districts, facilities, addAuditLog, userRole, officerName } = useHealthData();
@@ -32,9 +33,33 @@ export default function Reports() {
 
     setTimeout(() => {
       setIsGenerating(false);
-      const filename = `TN_Govt_${reportType.replace(/\s+/g, '_')}_${Date.now().toString().slice(-4)}.${format.toLowerCase() === 'excel' ? 'xlsx' : format.toLowerCase()}`;
+      const reportName = `TN_Govt_${reportType.replace(/\s+/g, '_')}_${Date.now().toString().slice(-4)}`;
+      const csvRows = [
+        ['Report Type', reportType],
+        ['District Scope', selectedDistrict],
+        ['Facility Scope', selectedFacility],
+        ['Date Range', dateRange],
+        [],
+        ['Facility', 'District', 'Type', 'Status', 'Patients Today', 'Total Beds', 'Occupied Beds'],
+        ...facilities
+          .filter(f => selectedDistrict === 'ALL' || f.district === selectedDistrict)
+          .filter(f => selectedFacility === 'ALL' || f.name === selectedFacility)
+          .map(f => [f.name, f.district, f.type, f.facilityStatus, f.patientsToday, f.totalBeds, f.occupiedBeds])
+      ];
+
+      if (format === 'PDF') {
+        window.print();
+        addAuditLog(`Printed ${format} Report: ${reportType}`, 'Reports Module', `Printed by ${officerName} for ${selectedDistrict} District.`);
+        setGeneratedSuccess(`Print dialog opened for '${reportName}'.`);
+        setTimeout(() => setGeneratedSuccess(null), 6000);
+        return;
+      }
+
+      const filename = `${reportName}.${format === 'Excel' ? 'xls' : 'csv'}`;
+      const csv = csvRows.map(row => row.map(escapeCsvValue).join(',')).join('\r\n');
+      downloadTextFile(filename, `${csv}\r\n`, 'text/csv;charset=utf-8');
       addAuditLog(`Generated & Exported ${format} Report: ${reportType}`, 'Reports Module', `Downloaded by ${officerName} for ${selectedDistrict} District.`);
-      setGeneratedSuccess(`Successfully created and downloaded '${filename}' (${format} format). Ready for administrative review.`);
+      setGeneratedSuccess(`Downloaded '${filename}' (${format} format).`);
       setTimeout(() => setGeneratedSuccess(null), 6000);
     }, 700);
   };

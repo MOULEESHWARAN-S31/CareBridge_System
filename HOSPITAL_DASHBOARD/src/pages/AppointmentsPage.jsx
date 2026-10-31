@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRoleNav } from '../hooks/useRoleNav';
 import { Calendar, Plus, Clock, Video, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { appointments } from '../data/mockData';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
 
 const tabs = ["Today's", 'Upcoming', 'Completed', 'Cancelled'];
 const typeIcon = { 'In-Person': '🏥', 'Consultation': '🩺', 'Teleconsultation': '💻', 'Emergency': '🚨', 'Follow-up': '🔄', 'Review': '📋', 'New Patient': '👤' };

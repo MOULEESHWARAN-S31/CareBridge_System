@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'regional_translations.dart';
 import 'supported_locales.dart';
 
 /// Centralized localization architecture for CareBridge.
-/// Prepared for English, Tamil, and future regional Indian languages.
+/// Full coverage for all 22 Indian Scheduled Languages + English (23 total).
 class AppLocalizations {
   final Locale locale;
 
@@ -17,16 +18,19 @@ class AppLocalizations {
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
 
-  static const List<Locale> supportedLocales = [
-    Locale('en'),
-    Locale('ta'),
-    Locale('hi'),
-  ];
+  static const List<Locale> supportedLocales = SupportedLocales.all;
 
   String _get(String key, String fallback) {
-    return _localizedValues[locale.languageCode]?[key] ??
+    final lang = locale.languageCode.toLowerCase();
+    return _localizedValues[lang]?[key] ??
+        regionalTranslations[lang]?[key] ??
         _localizedValues['en']?[key] ??
         fallback;
+  }
+
+  /// Dynamic key resolver
+  String translate(String key, [String? fallback]) {
+    return _get(key, fallback ?? key);
   }
 
   // Core navigation labels
@@ -440,6 +444,37 @@ class AppLocalizations {
   String get sendBtn => _get('sendBtn', 'Send');
   String get slotRequiredMsg => _get('slotRequiredMsg', 'Please select a time slot to continue');
   String get dateRequiredMsg => _get('dateRequiredMsg', 'Please select a consultation date');
+
+  // Screen audit & feature getters
+  String get notificationsAndAlerts => _get('notificationsAndAlerts', 'Notifications & Health Alerts');
+  String get consentAndPrivacy => _get('consentAndPrivacy', 'Consent & Privacy');
+  String get notificationsConfiguredMsg => _get('notificationsConfiguredMsg', 'Notifications settings configured.');
+  String get consentConfiguredMsg => _get('consentConfiguredMsg', 'Consent & Privacy configured.');
+  String get resetFilters => _get('resetFilters', 'Reset Filters');
+  String get primaryHealthcareFacility => _get('primaryHealthcareFacility', 'Primary Healthcare Facility');
+  String get nearbyHealthcareSetup => _get('nearbyHealthcareSetup', 'Nearby Healthcare Setup');
+  String get patientAccess => _get('patientAccess', 'Patient Access');
+  String get connectAbhaCard => _get('connectAbhaCard', 'Connect ABHA Card');
+  String get couldNotOpenAbhaUrl => _get('couldNotOpenAbhaUrl', 'Could not open ABHA registration page');
+  String get loadingDoctorsMsg => _get('loadingDoctorsMsg', 'Loading doctors...');
+  String get noDoctorsAvailable => _get('noDoctorsAvailable', 'No Doctors Available');
+  String get noDoctorsAvailableDesc => _get('noDoctorsAvailableDesc', 'No available doctors found for this hospital.');
+  String get yearsExpLabel => _get('yearsExpLabel', 'years experience');
+  String get stepOfProgress => _get('stepOfProgress', 'Step');
+  String get selectDoctorAt => _get('selectDoctorAt', 'Select Doctor at');
+  String get hindiLang => _get('hindiLang', 'Hindi');
+  String get languageSelectorTitle => _get('languageSelectorTitle', 'Select Language');
+  String get languageSelectorSubtitle => _get('languageSelectorSubtitle', 'Choose your preferred language for CareBridge');
+  String get languageSearchHint => _get('languageSearchHint', 'Search language...');
+  String get back => _get('back', 'Back');
+  String get loadingDistricts => _get('loadingDistricts', 'Loading districts...');
+  String get noDistrictsFound => _get('noDistrictsFound', 'No Districts Available');
+  String get loadingDoctors => _get('loadingDoctors', 'Loading doctors...');
+  String get continueToSchedule => _get('continueToSchedule', 'Continue to Schedule');
+  String get loadingHospitals => _get('loadingHospitals', 'Loading hospitals...');
+  String get noHospitalsFound => _get('noHospitalsFound', 'No Hospitals Found');
+  String get enterMobileNumber => _get('enterMobileNumber', 'Please enter your mobile number.');
+  String get enterValidMobileNumber => _get('enterValidMobileNumber', 'Please enter a valid 10-digit mobile number.');
 
   // Base localized dictionary
   static final Map<String, Map<String, String>> _localizedValues = {
@@ -1320,7 +1355,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) {
-    return ['en', 'ta', 'hi'].contains(locale.languageCode);
+    return SupportedLocales.all.any((l) => l.languageCode == locale.languageCode.toLowerCase());
   }
 
   @override

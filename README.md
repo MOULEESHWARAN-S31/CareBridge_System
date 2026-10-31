@@ -1,15 +1,16 @@
-# CareBridge System — Unified Public Healthcare Platform
+# CareBridge System — Smart Public Healthcare Access Platform
 
-[![Build & Integration Tests](https://img.shields.io/badge/Backend%20Tests-77%2F77%20Passing-brightgreen?style=flat-square)](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
+[![Build & Integration Tests](https://img.shields.io/badge/Backend%20Tests-101%2F101%20Passing-brightgreen?style=flat-square)](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
+[![Hospital Tests](https://img.shields.io/badge/Hospital%20Tests-107%2F107%20Passing-brightgreen?style=flat-square)](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
+[![Government Tests](https://img.shields.io/badge/Government%20Tests-94%2F94%20Passing-brightgreen?style=flat-square)](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
 [![Flutter Tests](https://img.shields.io/badge/Flutter%20Tests-120%2F120%20Passing-brightgreen?style=flat-square)](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
-[![Flutter Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen?style=flat-square)](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
-[![Node.js](https://img.shields.io/badge/Node.js-v18%2B%20%7C%20v24-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-v18%2B%20%7C%20v20%20%7C%20v24-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%2B%20%7C%2018-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x%20Web%20%26%20Mobile-02569B?style=flat-square&logo=flutter&logoColor=white)](https://flutter.dev/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![ABDM / ABHA](https://img.shields.io/badge/ABDM%20%2F%20ABHA-Compliant-FF9933?style=flat-square)](https://abdm.gov.in/)
 
-The **CareBridge System** is an enterprise-grade, integrated public digital health platform designed to unify state and district healthcare administration, hospital operations, and patient services under **ONE interconnected ecosystem**.
+**CareBridge** is an enterprise-grade public healthcare access and operations platform developed for state health departments, district administrations, public hospitals, primary health centers (PHCs), and citizens. It unifies healthcare delivery under **ONE single authenticated backend and authoritative PostgreSQL database (`carebridge_db`)**.
 
 ---
 
@@ -21,18 +22,18 @@ The **CareBridge System** is an enterprise-grade, integrated public digital heal
 └────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
    CareBridge Patient App         Common Login Portal         Admin Dashboard         Government Portal         Hospital Dashboard
-        (Port 8080)                   (Port 3000)               (Port 5173)              (Port 5174)                (Port 5175)
-   [Flutter Native & Web]        [HTML5 / CSS / Vanilla]      [Vanilla JS / CSS]        [React 19 Vite TS]         [React 19 Vite JS]
-            │                             │                           │                          │                          │
-            │                             │ POST /api/auth/login      │                          │                          │
-            └─────────────────────────────┴─────────────┬─────────────┴──────────────────────────┴──────────────────────────┘
+     [Flutter / Android]              (Port 3000)               (Port 5173)              (Port 5174)                (Port 5175)
+    [Dart 3.x / Web: 8080]       [HTML5 / CSS / Vanilla]     [Vanilla JS / CSS]       [React 19 Vite TS]         [React 19 Vite JS]
+             │                             │                          │                          │                          │
+             │                             │ POST /api/auth/login     │                          │                          │
+             └─────────────────────────────┴────────────┬─────────────┴──────────────────────────┴──────────────────────────┘
                                                         │
                                                         │ JSON REST API / Bearer JWT
                                                         ▼
                                       ┌────────────────────────────────────┐
                                       │     CareBridge Unified REST API    │
                                       │     Node.js + Express (Port 5000)  │
-                                      │     RBAC Middleware & Auth Router  │
+                                      │   RBAC Middleware & Geographic Gating│
                                       └─────────────────┬──────────────────┘
                                                         │
                                                         │ node-postgres (pg) Connection Pool
@@ -40,337 +41,295 @@ The **CareBridge System** is an enterprise-grade, integrated public digital heal
                                       ┌────────────────────────────────────┐
                                       │       PostgreSQL Database          │
                                       │       carebridge_db (Port 5432)    │
-                                      │       Normalized Relational Tables │
-                                      │       & Authoritative Live Seeds   │
+                                      │      24 Normalized DB Tables       │
+                                      │    & Authoritative Live Datasets   │
                                       └────────────────────────────────────┘
 ```
 
 ### Architectural Principles:
-1. **Centralized Data Access**: No frontend communicates directly with PostgreSQL. Every database operation traverses the **Node.js Express REST API (`backend/`)**.
-2. **Environment Isolation**: Database connection strings are supplied solely via `DATABASE_URL` in `.env` (never hard-coded).
-3. **Strict Role-Based Access Control (RBAC)**: Enforced both on the backend (`requireRole`) and across frontend route guards.
-4. **Unified Single Common Login**: Port `3000` is the single exclusive authentication gateway for Admin, Government, and Hospital roles.
-5. **Resilient Offline Architecture**: Frontends feature seamless automatic fallbacks to localized datasets when disconnected.
+1. **Single Source of Truth**: All five applications interact exclusively with the Node.js Express REST API (`backend/`) on Port 5000 and PostgreSQL (`carebridge_db`) on Port 5432.
+2. **Canonical Identification**: Persistent canonical IDs connect workflows across portals:
+   - Facilities: `GDH-SALEM-01` (Government District Hospital — Salem), `PHC-OMALUR-01`, `PHC-MECHERI-01`
+   - Districts: `Salem`, `Chennai`, `Coimbatore`, `Madurai`, `Tiruchirappalli`
+   - Patients: Universal 14-digit ABHA numbers (e.g., `12-3456-7890-1234`)
+3. **Strict Role-Based Access Control (RBAC)**: Enforced via cryptographic server-signed JWTs (`requireRole`) and frontend guards.
+4. **Geographic Gating**: District Health Administrators are restricted strictly to their assigned district jurisdiction (`Salem`); cross-district queries are rejected with HTTP 403 Forbidden.
+5. **English-Only Government UI**: Government Dashboard retains strict English-only UI for administrative precision; multilingual localization (23 languages) is housed within the citizen Flutter Patient App.
+6. **Strict AI Isolation**: Machine learning and epidemiological forecast models remain decoupled from baseline operational transaction flows.
 
 ---
 
-## 2. Integrated Modules Overview
+## 2. Integrated Applications & Port Matrix
 
-| Module | Directory | Port | Technology | Primary Role |
+| Application | Directory | Port | Technology | Primary Role & Access |
 |---|---|---|---|---|
-| **Common Login** | `LOGIN/` | **3000** | HTML5, Vanilla JS, CSS3 | Single Entry Portal for staff and government officials; validates credentials against backend and redirects by role. |
-| **Admin Dashboard** | `ADMIN_DASHBOARD/` | **5173** | HTML5, ES Modules, CSS3, SheetJS | Master healthcare administration, hospital accreditation, pharmacy registration, staff accounts, bulk Excel imports. |
-| **Government Dashboard** | `GOVERNMENT_DASHBOARD/` | **5174** | React 19, Vite, TypeScript, TailwindCSS | District & statewide monitoring, disease surveillance, outbreak cluster detection, AI prediction, emergency logistics. |
-| **Hospital Dashboard** | `HOSPITAL_DASHBOARD/` | **5175** | React 19, Vite, Lucide, Recharts | Hospital Management System for Government District Hospital — Salem (`GDH-SALEM-01`) supporting 10 hospital roles. |
-| **CareBridge Patient App** | `CARE_BRIDGE/` | **8080** | Flutter 3.x, Dart | Citizen mobile & web app: ABHA integration, OPD booking, health records (FHIR), teleconsultation, emergency SOS. |
-| **Unified REST API** | `backend/` | **5000** | Node.js, Express, pg, bcrypt, JWT | Secure REST API handling authentication, CRUD operations, RBAC enforcement, transactional DB queries. |
-| **Relational Database** | `database/` | **5432** | PostgreSQL 16+ / 18 | Central database (`carebridge_db`) housing normalized relational tables and authoritative seed datasets. |
+| **Common Login** | `LOGIN/` | **3000** | HTML5, CSS3, Vanilla JS | Unified central authentication gateway with evaluator demo pills and seamless role redirection. |
+| **Master Admin Dashboard** | `ADMIN_DASHBOARD/` | **5173** | HTML5, Vanilla JS, SheetJS | Master administrator portal: facility accreditation, pharmacy management, user provisioning, bulk Excel import, audit logs. |
+| **Government Dashboard** | `GOVERNMENT_DASHBOARD/` | **5174** | React 19, TypeScript, Vite, TailwindCSS | Dual-workspace administration: Statewide Health Command Center (`STATE_ADMIN`) & District Health Administration (`DISTRICT_ADMIN`). |
+| **Hospital Dashboard** | `HOSPITAL_DASHBOARD/` | **5175** | React 19, JavaScript, Vite, Recharts | Hospital Operations Management System for `GDH-SALEM-01` across 10 specialized hospital roles. |
+| **CareBridge Patient App** | `CARE_BRIDGE/` | **Mobile / 8080** | Flutter 3.x, Dart | Citizen digital health app: ABHA integration, OPD booking, live token queue, FHIR records, emergency SOS, 23 languages. |
+| **Backend REST API** | `backend/` | **5000** | Node.js, Express, pg, JWT, bcrypt | Authoritative REST API serving all frontends with RBAC and transaction management. |
+| **PostgreSQL Database** | `database/` | **5432** | PostgreSQL 16+ / 18 | Central database (`carebridge_db`) storing 24 relational tables and audit trails. |
 
 ---
 
-## 3. Key Capabilities per Module
+## 3. Applications Deep Dive
+
+### 🏛️ Government Health Dashboard (`GOVERNMENT_DASHBOARD/`)
+Provides real-time healthcare monitoring, disease surveillance, and resource governance across two authenticated workspaces:
+- **State Admin (`STATE_ADMIN`)**:
+  - `S01`: Statewide Executive Command Center & KPIs
+  - `S02`: District Performance Comparisons & Health Indices
+  - `S03`: Disease Surveillance & Outbreak Cluster Detection
+  - `S04`: Statewide Facility Bed & ICU Capacity Monitoring
+  - `S05`: Medicine & Diagnostic Shortage Intelligence
+  - `S06`: Blood Bank Inventory & Inter-District Coordination
+  - `S07`: Smart Health Camp Oversight
+  - `S08`: Statewide Resource Reallocation Directives
+  - `S09`: District Resource Escalations Queue (Approve / Reject)
+  - `S10`: Official State Public Announcements
+  - `S11`: Executive Health Digests & Statutory Reports
+- **District Admin (`DISTRICT_ADMIN` — Salem District)**:
+  - `D01`: District Command Center (Local Key Indicators)
+  - `D02`: District Hospitals, CHCs & PHC Network Monitoring
+  - `D03`: Block & Village Health Metrics
+  - `D04`: Disease Surveillance & Village-Level Clusters
+  - `D05`: Smart Health Camp Scheduling & Roster Management
+  - `D06`: Citizen Health Camp Request Approvals
+  - `D07`: District Medicine & Diagnostic Stock Levels
+  - `D08`: District Blood Bank Availability & Emergency Units
+  - `D09`: OPD Appointments & Hospital Queue Monitoring
+  - `D10`: Inter-Facility Patient Referral Tracking
+  - `D11`: High-Risk Chronic & Maternal Follow-Up Programs
+  - `D12`: District Public Health Notices & Advisories
+  - `D13`: District Operational Reports & Audit Logs
+  - `D14`: Diagnostic Equipment Availability & Uptime Tracking
 
 ### 🏥 Hospital Management System (`HOSPITAL_DASHBOARD/`)
-- **Assigned Hospital**: Government District Hospital — Salem (`GDH-SALEM-01`), Tamil Nadu.
-- **10 Core Workflows**: Hospital Admin, Doctor, Nurse, Receptionist, Laboratory, Pharmacy, Billing, Medical Records, Emergency, HR.
-- **Unified Login Integration**: Integrated with Common Login (`:3000`) via secure token handoff (`history.replaceState()`); internal login redirected.
-- **Clinical & Operational Endpoints**: Real-time bed occupancy matrix, live patient search by ABHA/OP/Phone, doctor availability, appointment tracking.
-- **Cross-Dashboard Protection**: Strict 403 Forbidden gating preventing Admin/Government users from accessing hospital clinical routes.
-- **Bilingual Support**: Full English and Tamil (தமிழ்) localization with dark/light themes.
+Operational Hospital Management System configured for **Government District Hospital — Salem (`GDH-SALEM-01`)**, supporting 10 distinct hospital staff roles:
+1. **Hospital Administrator (`HOSPITAL_ADMIN`)**: Overall hospital operations, occupancy, staff rotas, facility KPIs.
+2. **Doctor (`DOCTOR`)**: OPD consultation queue, electronic medical records, e-prescriptions, referral issuance.
+3. **Nurse (`NURSE`)**: Inpatient vitals logging, bed allocations, medication administration schedules.
+4. **Receptionist (`RECEPTIONIST`)**: Patient registration, ABHA verification, token generation, queue dispatch.
+5. **Laboratory Technician (`LAB_STAFF`)**: Diagnostic test orders, sample collection, lab result entry.
+6. **Pharmacist (`PHARMACIST`)**: Digital prescription dispensing, inventory tracking, stock alerts.
+7. **Billing Staff (`BILLING_STAFF`)**: Government scheme verification (PM-JAY / CMCHIS), invoice generation.
+8. **Medical Records Staff (`RECORDS_STAFF`)**: Electronic Health Records (EHR), ICD-10 coding, record archival.
+9. **Emergency Staff (`EMERGENCY_STAFF`)**: Triage scoring, ambulance dispatch, trauma bay management.
+10. **Bed / HR Manager (`HR_MANAGER`)**: Staff shifts, department allocations, attendance logs.
 
-### 🏥 CareBridge Patient App (`CARE_BRIDGE/`)
-- **ABDM / ABHA Integration**: Complete mobile number lookup supporting individual, family, and new user ABHA registration workflows.
-- **Doctor & Facility Discovery**: Real-time GPS distance sorting, taluk/district filters, and 24x7 emergency facility locator.
-- **OPD Queue & Token Tracking**: Digital OPD appointment scheduling, live wait time estimation, and downloadable passes.
-- **Health Records (PHR / FHIR)**: Secure storage of diagnostic reports, prescriptions, vaccination records, and doctor notes.
-- **Prescription Medicine Ordering**: 1-click pharmacy order submission from digital prescriptions.
-- **Multilingual Support**: Real-time localization in **English**, **Tamil (தமிழ்)**, and **Hindi (हिंदी)**.
-
-### 🔐 Common Login Portal (`LOGIN/`)
-- **Zero-Bypass Security**: Connects directly to `POST http://localhost:5000/api/auth/login`. Mock login bypasses have been removed.
-- **Smart Role-Based Redirection**:
-  - `ADMIN` $\rightarrow$ Redirects to Admin Dashboard (`http://localhost:5173`)
-  - `GOVERNMENT` $\rightarrow$ Redirects to Government Dashboard (`http://localhost:5174/dashboard`)
-  - `HOSPITAL_ADMIN` $\rightarrow$ Redirects to Hospital Admin Dashboard (`http://localhost:5175/admin/dashboard`)
-  - `DOCTOR` $\rightarrow$ Redirects to Doctor Dashboard (`http://localhost:5175/doctor/dashboard`)
-  - `NURSE` $\rightarrow$ Redirects to Nurse Dashboard (`http://localhost:5175/nurse/dashboard`)
-  - `RECEPTIONIST` $\rightarrow$ Redirects to Receptionist Dashboard (`http://localhost:5175/receptionist/dashboard`)
-  - `LAB_STAFF` $\rightarrow$ Redirects to Lab Dashboard (`http://localhost:5175/lab/dashboard`)
-  - `PHARMACIST` $\rightarrow$ Redirects to Pharmacy Dashboard (`http://localhost:5175/pharmacy/dashboard`)
-  - `BILLING_STAFF` $\rightarrow$ Redirects to Billing Dashboard (`http://localhost:5175/billing/dashboard`)
-  - `RECORDS_STAFF` $\rightarrow$ Redirects to Records Dashboard (`http://localhost:5175/records/dashboard`)
-  - `EMERGENCY_STAFF` $\rightarrow$ Redirects to Emergency Dashboard (`http://localhost:5175/emergency/dashboard`)
-  - `HR_MANAGER` $\rightarrow$ Redirects to HR Dashboard (`http://localhost:5175/hr/dashboard`)
-- **Evaluation Autofill**: One-click demo credential pills for fast evaluator testing across all 12 platform roles.
+### 📱 CareBridge Patient App (`CARE_BRIDGE/`)
+Citizen-facing Flutter mobile application designed for high accessibility, rural low-bandwidth resilience, and multilingual inclusivity:
+- **ABDM / ABHA Digital Identity**: Fast phone number lookup, OTP verification, instant profile linking, and QR code generation.
+- **Multilingual Localization Engine**: Native support for **23 Indian Languages** (Tamil, Hindi, Telugu, Malayalam, Kannada, Bengali, Marathi, Gujarati, etc.).
+- **OPD Appointment Booking**: Real-time hospital selection, department and specialist scheduling, digital token generation.
+- **Live Queue Tracking**: Real-time token progress monitoring reducing waiting room congestion.
+- **Personal Health Records (PHR / FHIR)**: Access lab reports, doctor prescriptions, discharge summaries, and immunizations.
+- **Emergency SOS & Facility Locator**: GPS-sorted nearest 24x7 emergency facilities, quick hotline dialing, and ambulance routing.
+- **Offline Sync Queue**: Offline data caching ensuring appointment details and emergency cards are accessible without active internet.
 
 ### ⚙️ Master Admin Dashboard (`ADMIN_DASHBOARD/`)
-- **Healthcare Facility Accreditation**: Add, verify, and monitor government and private hospitals, PHCs, and CHCs.
-- **Medical Store & Pharmacy Management**: License verification, pharmacy directory, and medicine stock levels.
-- **User Account Management**: Admin-only creation of government officers, doctors, and hospital staff.
-- **Bulk Import Engine**: SheetJS/XLSX workbook bulk ingestion for hospitals, pharmacies, doctors, and inventory.
-- **Full Audit Logging**: Tracks administrative actions with timestamps, IP tracking, and change descriptions.
+Master network oversight platform for health department super administrators:
+- **Facility Master Registry**: Accreditation, capacity configuration, and coordinates for Hospitals, PHCs, and CHCs.
+- **User Provisioning & RBAC**: Admin-controlled credential issuance for government officials, hospital admins, and medical staff.
+- **Pharmacy & Medical Store Registry**: Licensing verification, pharmacy mapping, and essential medicine catalogue management.
+- **Bulk Import Engine**: SheetJS/XLSX workbook ingestion for mass onboarding of facilities, doctors, and inventories.
+- **System Audit Log**: Immutable record of all system-wide administrative changes with timestamps and IP logging.
 
-### 🏛️ Government Public Health Dashboard (`GOVERNMENT_DASHBOARD/`)
-- **District Healthcare Index**: Salem, Chennai, Coimbatore, Madurai, Tiruchirappalli health metrics.
-- **Epidemic & Disease Surveillance**: Real-time tracking of Dengue, Typhoid, Malaria, and Influenza clusters.
-- **AI Epidemic Prediction Engine**: Predictive risk modeling calculating 7-day projected case trajectories.
-- **Hospital Bed & ICU Matrix**: Live tracking of general, ICU, pediatric, and ventilator bed occupancy.
-- **Strict Role Enforcement**: Exclusively accessible by the `GOVERNMENT` role; blocks unauthorized roles.
+### 🔐 Common Unified Login Portal (`LOGIN/`)
+Single sign-on entry point hosted on port `3000`:
+- **Cryptographic Backend Authentication**: Directly hits `POST /api/auth/login` on port 5000.
+- **Role-Based Redirection Engine**:
+  - `ADMIN` $\rightarrow$ `http://localhost:5173`
+  - `STATE_ADMIN` / `DISTRICT_ADMIN` / `GOVERNMENT` $\rightarrow$ `http://localhost:5174/dashboard`
+  - Hospital Roles (`HOSPITAL_ADMIN`, `DOCTOR`, `RECEPTIONIST`, etc.) $\rightarrow$ `http://localhost:5175/<role>/dashboard`
+- **Zero-Bypass Token Protection**: Sanitizes tokens from URL history via `window.history.replaceState()`.
+- **Evaluator Fast-Pills**: One-click demo credential autofill for rapid evaluator inspection across all roles.
 
 ---
 
 ## 4. Default Credentials & Role Matrix
 
-| Portal | Role | Username / Identifier | Password | Access URL |
+| Application | Role | Email / Identifier | Password | Access URL |
 |---|---|---|---|---|
-| **Common Login** | Entrypoint | *(Any valid user)* | *(User password)* | [http://localhost:3000](http://localhost:3000) |
-| **Admin Dashboard** | `ADMIN` | `admin@carebridge.local` *(or `admin`)* | `Admin@123` | [http://localhost:5173](http://localhost:5173) |
-| **Government Dashboard** | `GOVERNMENT` | `government@carebridge.local` *(or `gov_salem`)* | `Gov@123` | [http://localhost:5174/dashboard](http://localhost:5174/dashboard) |
+| **Common Login** | Gateway | *(Any valid account)* | *(Password)* | [http://localhost:3000](http://localhost:3000) |
+| **Master Admin Dashboard** | `ADMIN` | `admin@carebridge.local` | `Admin@123` | [http://localhost:5173](http://localhost:5173) |
+| **Government Dashboard** | `GOVERNMENT` | `government@carebridge.local` | `Gov@123` | [http://localhost:5174/dashboard](http://localhost:5174/dashboard) |
 | **Hospital Administrator** | `HOSPITAL_ADMIN` | `hospital.admin@carebridge.local` | `Admin@123` | [http://localhost:5175/admin/dashboard](http://localhost:5175/admin/dashboard) |
 | **Doctor** | `DOCTOR` | `doctor@carebridge.local` | `Doctor@123` | [http://localhost:5175/doctor/dashboard](http://localhost:5175/doctor/dashboard) |
 | **Nurse** | `NURSE` | `nurse@carebridge.local` | `Nurse@123` | [http://localhost:5175/nurse/dashboard](http://localhost:5175/nurse/dashboard) |
-| **Receptionist** | `RECEPTIONIST` | `receptionist@carebridge.local` | `Recep@123` | [http://localhost:5175/receptionist/dashboard](http://localhost:5175/receptionist/dashboard) |
+| **Receptionist** | `RECEPTIONIST` | `receptionist@carebridge.local` | `Reception@123` | [http://localhost:5175/receptionist/dashboard](http://localhost:5175/receptionist/dashboard) |
 | **Laboratory Staff** | `LAB_STAFF` | `lab@carebridge.local` | `Lab@123` | [http://localhost:5175/lab/dashboard](http://localhost:5175/lab/dashboard) |
-| **Pharmacist** | `PHARMACIST` | `pharmacist@carebridge.local` | `Pharm@123` | [http://localhost:5175/pharmacy/dashboard](http://localhost:5175/pharmacy/dashboard) |
+| **Pharmacist** | `PHARMACIST` | `pharmacist@carebridge.local` | `Pharmacy@123` | [http://localhost:5175/pharmacy/dashboard](http://localhost:5175/pharmacy/dashboard) |
 | **Billing Staff** | `BILLING_STAFF` | `billing@carebridge.local` | `Bill@123` | [http://localhost:5175/billing/dashboard](http://localhost:5175/billing/dashboard) |
 | **Medical Records Staff** | `RECORDS_STAFF` | `records@carebridge.local` | `Record@123` | [http://localhost:5175/records/dashboard](http://localhost:5175/records/dashboard) |
 | **Emergency Staff** | `EMERGENCY_STAFF` | `emergency@carebridge.local` | `Emerg@123` | [http://localhost:5175/emergency/dashboard](http://localhost:5175/emergency/dashboard) |
 | **HR Manager** | `HR_MANAGER` | `hr@carebridge.local` | `Hr@123` | [http://localhost:5175/hr/dashboard](http://localhost:5175/hr/dashboard) |
 
-### ABHA Mobile Verification Test Scenarios
-
-The central database includes pre-seeded ABHA profiles covering all mandatory ABDM compliance test cases:
-
-| Mobile Number | Profiles Found | Test Scenario Description |
-|---|---|---|
-| `9876500000` | **0 Profiles** | Unregistered user $\rightarrow$ Triggers New ABHA Registration Flow |
-| `9876500001` | **1 Profile** | Single Individual profile (Ramesh Kumar - ABHA: `12-3456-7890-1234`) |
-| `9876500002` | **2 Profiles** | Family Unit: Self + Spouse |
-| `9876500003` | **3 Profiles** | Nuclear Family: Self + Spouse + Child |
-| `9876500004` | **4 Profiles** | Joint Family: Parents, Self, Spouse, Child |
-| `9876543210` | **2 Profiles** | General Demonstration Profile |
+### ABDM / ABHA Test Phone Numbers
+Pre-seeded in PostgreSQL to test full ABDM compliance:
+- `9876500000`: Unregistered user $\rightarrow$ Triggers New ABHA Registration Flow
+- `9876500001`: Single Individual profile (`12-3456-7890-1234` — Ramesh Kumar)
+- `9876500002`: Family Unit: Self + Spouse
+- `9876500003`: Nuclear Family: Self + Spouse + Child
+- `9876500004`: Joint Family: Parents, Self, Spouse, Child
+- `9876543210`: Multi-Profile General Demonstration Account
 
 ---
 
-## 5. Prerequisites & System Requirements
+## 5. Prerequisites & Environment Setup
 
-- **Node.js**: v18.0.0 or higher (v20+ / v24 recommended)
-- **PostgreSQL**: v16.0 or higher (PostgreSQL 18 tested)
-- **Flutter SDK**: v3.19.0 or higher (with Dart SDK 3.3+)
-- **Google Chrome**: For running Flutter Web and interacting with web dashboards
-- **Git**: For version control
+- **Node.js**: v18.0.0 or higher (v20+ / v24 tested)
+- **PostgreSQL**: v16.0 or higher (`carebridge_db` on port 5432)
+- **Flutter SDK**: v3.19.0 or higher with Dart SDK 3.3+
+- **Google Chrome / Microsoft Edge**: For web applications and dashboards
+- **Git**: For source version control
 
----
+### Setup Instructions
 
-## 6. Installation & Quick Setup
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/MOULEESHWARAN-S31/CareBridge_System.git
+   cd CareBridge_System
+   ```
 
-### Step 1: Clone the Repository
-```bash
-git clone https://github.com/MOULEESHWARAN-S31/CareBridge_System.git
-cd CareBridge_System
-```
+2. **Configure Environment Variables**:
+   Create a `.env` file in `backend/` and root (or copy `.env.example`):
+   ```env
+   PORT=5000
+   NODE_ENV=development
+   DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/carebridge_db
+   JWT_SECRET=carebridge_production_jwt_super_secret_key_2026
+   JWT_EXPIRES_IN=24h
+   CORS_ORIGIN=*
+   ```
 
-### Step 2: Configure Environment Variables
-Copy [.env.example](file:///d:/CAREBRIDGE_SYSTEM/.env.example) to `.env` in the root directory:
-```bash
-cp .env.example .env
-```
-Ensure `.env` matches your local PostgreSQL credentials:
-```env
-PORT=5000
-NODE_ENV=development
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/carebridge_db
-JWT_SECRET=carebridge_production_jwt_super_secret_key_2026
-JWT_EXPIRES_IN=24h
-CORS_ORIGIN=*
-```
+3. **Install Dependencies**:
+   ```bash
+   npm install
+   npm --prefix backend install
+   npm --prefix ADMIN_DASHBOARD install
+   npm --prefix GOVERNMENT_DASHBOARD install
+   npm --prefix HOSPITAL_DASHBOARD install
+   cd CARE_BRIDGE && flutter pub get && cd ..
+   ```
 
-### Step 3: Install Dependencies
-Run the installation across modules:
-```bash
-npm install
-npm --prefix backend install
-npm --prefix ADMIN_DASHBOARD install
-npm --prefix GOVERNMENT_DASHBOARD install
-npm --prefix HOSPITAL_DASHBOARD install
-cd CARE_BRIDGE && flutter pub get && cd ..
-```
-
-### Step 4: Initialize & Seed PostgreSQL Database
-Run the automated database setup script to create `carebridge_db`, apply the schema, and populate all seed records (including 10 hospital roles & GDH-SALEM-01 staff):
-```bash
-npm --prefix backend run db:setup
-node backend/scripts/seed_hospital_roles.js
-```
+4. **Initialize & Seed PostgreSQL Database**:
+   ```bash
+   npm --prefix backend run db:setup
+   node backend/scripts/sync_canonical_facility.js
+   node backend/scripts/seed_hospital_roles.js
+   ```
 
 ---
 
-## 7. Running the Applications
+## 6. Running the Applications
 
-### Option A: Launch All Five Web Services with ONE Command (Recommended)
-From the repository root:
+### Launch All Services Concurrently (Recommended)
 ```bash
 npm start
-# or
-npm run dev
-# or
-npm run dev:all
+# or: npm run dev:all
 ```
+This runs all services concurrently:
+- **`[BACKEND]`** on [http://localhost:5000](http://localhost:5000)
+- **`[LOGIN]`** on [http://localhost:3000](http://localhost:3000)
+- **`[ADMIN]`** on [http://localhost:5173](http://localhost:5173)
+- **`[GOVERNMENT]`** on [http://localhost:5174](http://localhost:5174)
+- **`[HOSPITAL]`** on [http://localhost:5175](http://localhost:5175)
 
-This starts all five services concurrently with color-coded terminal logs:
-- **`[BACKEND]`** running on [http://localhost:5000](http://localhost:5000)
-- **`[LOGIN]`** running on [http://localhost:3000](http://localhost:3000)
-- **`[ADMIN]`** running on [http://localhost:5173](http://localhost:5173)
-- **`[GOVERNMENT]`** running on [http://localhost:5174](http://localhost:5174)
-- **`[HOSPITAL]`** running on [http://localhost:5175](http://localhost:5175)
-
-### Option B: Launch the CareBridge Flutter Patient App
-In a separate terminal:
+### Launch Flutter Patient App
 ```bash
 npm run dev:carebridge
-# Or directly:
-cd CARE_BRIDGE
-flutter run -d chrome --web-port=8080
+# or:
+cd CARE_BRIDGE && flutter run -d chrome --web-port=8080
 ```
-Open [http://localhost:8080](http://localhost:8080) to test the Patient App.
-
-### Option C: Running Individual Modules Independently
-| Command | Action |
-|---|---|
-| `npm run dev:backend` | Starts only the Node.js REST API on `:5000` with hot reload (`--watch`) |
-| `npm run dev:login` | Starts the Common Login server on `:3000` |
-| `npm run dev:admin` | Starts the Admin Dashboard server on `:5173` |
-| `npm run dev:gov` | Starts the Government Dashboard Vite dev server on `:5174` |
-| `npm run dev:hospital` | Starts the Hospital Dashboard Vite dev server on `:5175` |
-| `npm run dev:carebridge` | Launches the Flutter Patient Web App on `:8080` |
 
 ---
 
-## 8. Verification & Test Suites
+## 7. Automated Test Suites & Verification
 
-The CareBridge System includes comprehensive test suites across both the Node.js backend and the Flutter client.
+CareBridge features comprehensive automated test coverage across all five tiers:
 
-### 1. Backend Automated Integration Tests (77/77 Passed)
-```bash
-npm --prefix backend test
-# or from root:
-npm run test:backend
-```
-**Test Coverage Includes**:
-- Health check endpoint verification (`GET /health` $\rightarrow$ 200 OK)
-- Authentication negative tests (bad password, missing body, unauthorized access)
-- Role-based access control (Government blocked from admin users table with 403 Forbidden)
-- Admin user operations (`GET /api/users` $\rightarrow$ 200 OK)
-- All 6 Mandatory ABHA test phone numbers verification
-- Hospital creation, distance calculation, and public discovery
-- Doctor appointment booking and ID generation
-- Medical store creation and prescription medicine ordering
-- **Hospital Roles Authentication**: Full backend validation of all 10 Hospital roles (`HOSPITAL_ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`, `LAB_STAFF`, `PHARMACIST`, `BILLING_STAFF`, `RECORDS_STAFF`, `EMERGENCY_STAFF`, `HR_MANAGER`) with verified claims (`role`, `hospitalId = 'GDH-SALEM-01'`)
-- **Hospital Role Enforcement**: Unauthorized roles blocked with HTTP 403 Forbidden
-- **Hospital Clinical Endpoints**: Live metrics for `/api/hospital/overview`, `/api/hospital/beds`, `/api/hospital/patients/search`
-
-### 2. Flutter Patient App Automated Tests (120/120 Passed)
-```bash
-cd CARE_BRIDGE && flutter test
-# or from root:
-npm run test:carebridge
-```
-**Test Coverage Includes**:
-- ABHA verification, phone lookup, profile selection, and connection flow
-- Onboarding, OTP verification, and patient profile setup
-- Home dashboard personalization and responsive quick actions
-- Health records filtering, category cards, and FHIR clinical reports
-- Appointment booking flow with doctor and time slot selection
-- Accessibility text scaling (1.0x, 1.3x, 1.6x) overflow checks
-- Multilingual rendering in English, Tamil, and Hindi
-
-### 3. Flutter Code Quality Analysis (0 Issues)
-```bash
-cd CARE_BRIDGE
-flutter analyze
-```
-Result: **`No issues found!`**
+| Suite | Command | Test Count | Status |
+|---|---|---|---|
+| **Backend API & PostgreSQL** | `npm --prefix backend test` | **101 tests** | **101/101 PASSED** |
+| **Hospital Dashboard** | `node HOSPITAL_DASHBOARD/scripts/run_all_tests.js` | **107 tests** | **107/107 PASSED** |
+| **Government Dashboard** | `npm --prefix GOVERNMENT_DASHBOARD test` | **94 tests** | **94/94 PASSED** |
+| **Flutter Patient App** | `cd CARE_BRIDGE && flutter test` | **120 tests** | **120/120 PASSED** |
+| **Flutter Static Analysis** | `cd CARE_BRIDGE && flutter analyze` | **0 issues** | **Clean** |
+| **Frontend Production Builds** | `npm --prefix GOVERNMENT_DASHBOARD run build`<br>`npm --prefix HOSPITAL_DASHBOARD run build` | **All bundles** | **Exit code 0** |
 
 ---
 
-## 9. Project Directory Structure
+## 8. Repository Structure
 
 ```
 CareBridge_System/
-├── .env.example                         # Environment variable configuration template
-├── package.json                         # Root multi-module orchestration scripts
-├── README.md                            # Complete system documentation
+├── README.md                            # Complete System Architecture & Overview
+├── package.json                         # Multi-service launcher scripts
+├── .env.example                         # Environment template
 │
-├── scripts/                             # Server launchers and orchestrators
-│   ├── start-all.js                     # Unified 4-service orchestrator
-│   ├── serve-login.js                   # Common Login static server (Port 3000)
-│   └── serve-admin.js                   # Admin Dashboard static server (Port 5173)
-│
-├── database/                            # Central Database Schemas & Seeds
-│   ├── schema.sql                       # 21 relational tables DDL
-│   └── seed.sql                         # Authoritative seed dataset & ABHA profiles
-│
-├── backend/                             # CareBridge REST API (Port 5000)
-│   ├── package.json                     # Express, pg, bcrypt, jsonwebtoken
-│   ├── scripts/
-│   │   └── setupDatabase.js             # Automated DB migration and verification
-│   ├── src/
-│   │   ├── app.js                       # Express app configuration & CORS
-│   │   ├── server.js                    # Server startup & DB connection check
-│   │   ├── config/db.js                 # PostgreSQL pg connection pool
-│   │   ├── middleware/                  # JWT auth and requireRole middleware
-│   │   ├── routes/api.js                # Consolidated REST routes
-│   │   └── controllers/                 # Controllers (auth, abha, hospital, user, etc.)
-│   └── test/
-│       └── backend.test.js              # 29 end-to-end integration tests
-│
-├── Login/                               # Common Login Portal (Port 3000)
+├── LOGIN/                               # Common Login Portal (Port 3000)
 │   ├── index.html                       # Responsive login portal
-│   ├── css/design-system.css            # Standardized government healthcare tokens
+│   ├── css/design-system.css            # Standardized healthcare tokens
 │   └── js/                              # Form validation, auth, and role redirection
 │
-├── admin-dashboard/                     # Master Admin Dashboard (Port 5173)
+├── ADMIN_DASHBOARD/                     # Master Admin Dashboard (Port 5173)
 │   ├── index.html                       # Admin portal SPA
-│   ├── css/admin.css                    # Admin UI stylesheets
-│   ├── js/
-│   │   ├── app.js                       # Cross-port auth ingestion & routing
-│   │   ├── store/adminStore.js          # Reactive store with PostgreSQL sync
-│   │   └── components/admin/            # Facility, user, store, audit components
-│   └── package.json                     # Admin launcher scripts
+│   ├── css/admin.css                    # Admin UI styles
+│   ├── js/                              # Facility, user, pharmacy & audit components
+│   └── README.md                        # Admin Dashboard documentation
 │
-├── Government-dashboard/                # Government Health Portal (Port 5174)
+├── GOVERNMENT_DASHBOARD/                # Government Health Portal (Port 5174)
 │   ├── src/
-│   │   ├── context/HealthDataContext.tsx# Strict GOVERNMENT role guard & live data
-│   │   ├── layouts/DashboardLayout.tsx  # Navigation, alert ticker, language selector
-│   │   └── pages/                       # Overview, Surveillance, Beds, AI Prediction
-│   ├── vite.config.ts                   # Vite configuration (Port 5174)
-│   └── package.json                     # React 19, Lucide, Recharts
+│   │   ├── context/HealthDataContext.tsx# Role guard, state sync & live API client
+│   │   ├── layouts/DashboardLayout.tsx  # Header, sidebar & workspace switcher
+│   │   ├── pages/state/                 # S01-S11 State Admin workspace pages
+│   │   ├── pages/district/              # D01-D14 District Admin workspace pages
+│   │   └── pages/                       # Geographic, facility & surveillance views
+│   ├── scripts/test_government_dashboard.js # 94-test verification runner
+│   └── README.md                        # Government Dashboard documentation
 │
-└── CARE_BRIDGE/                         # CareBridge Patient App (Port 8080)
-    ├── pubspec.yaml                     # Dependencies (http, provider, intl, etc.)
-    ├── lib/
-    │   ├── main.dart                    # Application entry point & theme
-    │   ├── core/services/api_service.dart# Adaptive REST client (Web & Mobile)
-    │   └── features/                    # abha, appointments, records, home, etc.
-    └── test/                            # 120 unit, widget, and golden test suites
+├── HOSPITAL_DASHBOARD/                  # Hospital Operations Portal (Port 5175)
+│   ├── src/
+│   │   ├── auth/accounts.js             # Canonical credentials for 10 hospital roles
+│   │   ├── components/                  # Role-based dashboards & clinical workflows
+│   │   └── services/                    # Live backend API connectors
+│   ├── scripts/run_all_tests.js         # 107-test verification runner
+│   └── README.md                        # Hospital Dashboard documentation
+│
+├── CARE_BRIDGE/                         # Flutter Patient Mobile App (Mobile / Port 8080)
+│   ├── lib/
+│   │   ├── core/                        # API client, localization (23 languages), theme
+│   │   └── features/                    # ABHA, appointments, records, emergency, queue
+│   ├── test/                            # 120 Flutter unit, widget & integration tests
+│   └── README.md                        # Flutter App documentation
+│
+└── backend/                             # Express REST API & Database (Port 5000)
+    ├── src/
+    │   ├── server.js                    # Express HTTP server & connection health
+    │   ├── config/db.js                 # PostgreSQL connection pool
+    │   ├── middleware/                  # JWT auth, requireRole, governmentScope
+    │   ├── controllers/                 # Business logic controllers
+    │   └── routes/api.js                # Consolidated REST API router
+    ├── scripts/                         # Database setup, migrations, and seeders
+    ├── test/backend.test.js             # 101-test backend integration suite
+    └── README.md                        # Backend & Database documentation
 ```
 
 ---
 
-## 10. Security & Regulatory Compliance
+## 9. Regulatory & Security Compliance
 
-- **Authentication**: Industry-standard **JSON Web Tokens (JWT)** with configurable expiration (`24h`).
-- **Password Protection**: Passwords encrypted with **bcryptjs** using 10 salt rounds.
-- **Role Isolation**: Strict server-side RBAC middleware prevents unauthorized privilege escalation between patients, hospital admins, and government officers.
-- **Patient Privacy Protection**: Government surveillance views display **cryptographically masked patient identifiers** to prevent unauthorized exposure of Protected Health Information (PHI).
-- **SQL Injection Prevention**: 100% of database queries use parameterized SQL statements through `pg` prepared statements.
+- **ABDM Compliance**: Full integration with National Health Authority Ayushman Bharat Digital Mission (ABDM) specifications for ABHA creation, verification, and FHIR-compliant health records.
+- **Privacy & PHI Protection**: Patient identities are cryptographically masked in administrative surveillance heatmaps.
+- **Parameterized SQL**: All PostgreSQL interactions utilize strictly parameterized statements via `pg` pool queries to eliminate SQL injection risks.
+- **Auditing**: Comprehensive audit logs (`audit_logs` & `government_audit_events`) capture every resource alteration, request status change, and user creation event.
 
 ---
 
-## 11. Authors & Acknowledgements
+## 10. License & Maintainer
 
-Developed as part of the **CareBridge System Initiative** to advance public healthcare interoperability, rapid emergency response, and Ayushman Bharat Digital Mission (ABDM) integration.
-
-- **Repository**: [https://github.com/MOULEESHWARAN-S31/CareBridge_System](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
 - **Maintainer**: MOULEESHWARAN S ([@MOULEESHWARAN-S31](https://github.com/MOULEESHWARAN-S31))
+- **Repository**: [https://github.com/MOULEESHWARAN-S31/CareBridge_System](https://github.com/MOULEESHWARAN-S31/CareBridge_System)
 - **License**: MIT License

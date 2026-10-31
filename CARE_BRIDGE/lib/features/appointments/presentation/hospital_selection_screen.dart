@@ -8,6 +8,7 @@ import 'package:care_bridge/shared/widgets/care_bridge_state_widgets.dart';
 import 'booking_flow_wrapper.dart';
 import '../data/phone_call_service_impl.dart';
 import '../domain/hospital.dart';
+import 'package:care_bridge/core/localization/app_localizations.dart';
 
 class HospitalSelectionScreen extends StatelessWidget {
   final VoidCallback onNext;
@@ -41,13 +42,15 @@ class HospitalSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final langCode = loc.locale.languageCode;
     final controller = BookingScope.of(context);
     final districtName = controller.selectedDistrict?.name ?? '';
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Book Appointment'),
+        title: Text(loc.bookAppointmentTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: onBack,
@@ -60,10 +63,10 @@ class HospitalSelectionScreen extends StatelessWidget {
             _buildProgressHeader('Step 2 of 5', 'Select Hospital in $districtName'),
             Expanded(
               child: controller.isLoadingHospitals
-                  ? const CareBridgeLoading(message: 'Loading hospitals...')
+                  ? CareBridgeLoading(message: loc.loadingHospitals)
                   : controller.hospitals.isEmpty
                       ? CareBridgeEmptyState(
-                          title: 'No Hospitals Found',
+                          title: loc.noHospitalsFound,
                           description: 'No registered hospitals found in $districtName.',
                           icon: Icons.local_hospital_outlined,
                         )
@@ -76,8 +79,8 @@ class HospitalSelectionScreen extends StatelessWidget {
                             final isSelected = controller.selectedHospital == hospital;
 
                             return CareBridgeCard(
-                              title: hospital.name,
-                              subtitle: hospital.type,
+                              title: hospital.getDisplayName(langCode),
+                              subtitle: hospital.getDisplayType(langCode),
                               leadingIcon: Container(
                                 padding: const EdgeInsets.all(AppDimensions.space6),
                                 decoration: BoxDecoration(
@@ -166,7 +169,7 @@ class HospitalSelectionScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CareBridgeButton.outlined(
-                      label: 'Back',
+                      label: loc.back,
                       onPressed: onBack,
                     ),
                   ),
@@ -174,7 +177,7 @@ class HospitalSelectionScreen extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: CareBridgeButton.primary(
-                      label: 'Continue to Doctors',
+                      label: loc.continueBtn,
                       onPressed: controller.canProceedToDoctor ? onNext : null,
                     ),
                   ),

@@ -4,7 +4,7 @@ import './index.css';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
-import { ToastProvider } from './components/Toast';
+import { ToastProvider } from './components/common/Toast';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

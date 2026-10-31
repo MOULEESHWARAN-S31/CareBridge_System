@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_dimensions.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/services/session_service.dart';
 import '../data/location_service_impl.dart';
 import '../domain/healthcare_facility.dart';
@@ -94,13 +95,14 @@ class _NearestFacilityScreenState extends State<NearestFacilityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final patLat = _userLocation?.latitude;
     final patLng = _userLocation?.longitude;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Primary Healthcare Facility'),
+        title: Text(loc.primaryHealthcareFacility),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Building2, Users, Shield, Globe, Bell, Lock, Eye, Sun, Moon, ChevronRight, Check } from 'lucide-react';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
 import { useLanguage } from '../context/LanguageContext';
 
 const sections = [
