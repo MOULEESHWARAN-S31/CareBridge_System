@@ -237,6 +237,15 @@ This runs all services concurrently:
 - **`[GOVERNMENT]`** on [http://localhost:5174](http://localhost:5174)
 - **`[HOSPITAL]`** on [http://localhost:5175](http://localhost:5175)
 
+The orchestrator preflights all five ports and fails before launching children if any
+required port is already occupied. Press `Ctrl+C` to terminate the complete process
+tree; rerun `npm run dev:all` after shutdown for a clean restart.
+
+Common Login uses a short-lived, single-use backend handoff code for new dashboard
+redirects. The code is exchanged over `POST /api/auth/handoff/exchange` and removed
+from the browser URL immediately. Legacy URL-token ingestion remains available only
+for backward compatibility with existing sessions.
+
 ### Launch Flutter Patient App
 ```bash
 npm run dev:carebridge
