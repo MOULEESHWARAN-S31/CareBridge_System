@@ -225,7 +225,8 @@ class HomeScreen extends StatelessWidget {
                   // 2. Large 2-column Healthcare Feature Grid
                   _buildQuickActions(context, localizations),
 
-                  const SizedBox(height: AppDimensions.space24),
+                  // Generous bottom scroll clearance so floating assistant never covers lowest cards
+                  const SizedBox(height: 88.0),
                 ],
               ),
             ),
@@ -394,7 +395,7 @@ class HomeScreen extends StatelessWidget {
         onTap: () => _showEmergencyDialog(context, loc),
       ),
       _QuickActionItem(
-        title: 'Healthcare Services',
+        title: loc.quickActionHealthcareServices,
         icon: Icons.domain_rounded,
         color: const Color(0xFF00838F),
         bgColor: const Color(0xFFE0F7FA),
@@ -410,7 +411,7 @@ class HomeScreen extends StatelessWidget {
         onTap: () => _navigateToTab(context, 3, AppRoutes.records),
       ),
       _QuickActionItem(
-        title: 'My Appointments',
+        title: loc.quickActionMyAppointments,
         icon: Icons.event_available_rounded,
         color: const Color(0xFF2E7D32),
         bgColor: const Color(0xFFE8F5E9),
@@ -439,18 +440,33 @@ class HomeScreen extends StatelessWidget {
           builder: (context, constraints) {
             final double maxWidth = constraints.maxWidth;
             final int crossAxisCount = maxWidth > 650 ? 4 : 2;
-            final double spacing = AppDimensions.space12;
-            final double itemWidth = (maxWidth - (spacing * (crossAxisCount - 1))) / crossAxisCount;
+            const double spacing = AppDimensions.space12;
 
-            return Wrap(
-              spacing: spacing,
-              runSpacing: spacing,
-              children: actions.map((item) {
-                return SizedBox(
-                  width: itemWidth,
-                  child: _buildFeatureCard(context, item),
+            // Responsive text scaling to reserve equal height across all cards
+            final textScaler = MediaQuery.textScalerOf(context);
+            final double textScale = textScaler.scale(14.0) / 14.0;
+            // Reserved height for two lines of wrapped title + padding + safety margin
+            final double reservedTextHeight = (44.0 * textScale).clamp(44.0, 76.0);
+            // Uniform card height: vertical padding (28) + icon box (52) + gap (8) + reservedTextHeight
+            final double cardHeight = 28.0 + 52.0 + 8.0 + reservedTextHeight;
+
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: actions.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: spacing,
+                mainAxisSpacing: spacing,
+                mainAxisExtent: cardHeight,
+              ),
+              itemBuilder: (context, index) {
+                return _buildFeatureCard(
+                  context,
+                  actions[index],
+                  textScale: textScale,
                 );
-              }).toList(),
+              },
             );
           },
         ),
@@ -458,7 +474,14 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(BuildContext context, _QuickActionItem item) {
+  Widget _buildFeatureCard(
+    BuildContext context,
+    _QuickActionItem item, {
+    required double textScale,
+  }) {
+    final bool isLongTitle = item.title.length > 20;
+    final double titleFontSize = (isLongTitle || textScale > 1.3) ? 13.0 : 14.0;
+
     return AccessibilityUtils.ensureMinTouchTarget(
       child: Semantics(
         button: true,
@@ -472,14 +495,14 @@ class HomeScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(20.0),
             child: Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.space12,
-                vertical: AppDimensions.space16,
+                horizontal: 10.0,
+                vertical: 14.0,
               ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20.0),
                 border: Border.all(
                   color: item.borderColor ?? item.color.withValues(alpha: 0.25),
-                  width: item.isEmergency ? 1.5 : 1.0,
+                  width: 1.0,
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -491,67 +514,79 @@ class HomeScreen extends StatelessWidget {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Top Centered Icon container
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 56.0,
-                        height: 56.0,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.92),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: item.color.withValues(alpha: 0.12),
-                              blurRadius: 8.0,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                  // 1. Icon area: Fixed size container, aligned consistently across all cards
+                  SizedBox(
+                    width: 52.0,
+                    height: 52.0,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 52.0,
+                          height: 52.0,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.92),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: item.color.withValues(alpha: 0.12),
+                                blurRadius: 8.0,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            item.icon,
+                            color: item.color,
+                            size: 28.0,
+                          ),
                         ),
-                        child: Icon(
-                          item.icon,
-                          color: item.color,
-                          size: 30.0,
-                        ),
-                      ),
-                      if (item.badge != null)
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                            decoration: BoxDecoration(
-                              color: item.color,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              item.badge!,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9.0,
-                                fontWeight: FontWeight.bold,
+                        if (item.badge != null)
+                          Positioned(
+                            top: -2,
+                            right: -2,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: item.color,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                item.badge!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: AppDimensions.space12),
-                  // Title
-                  Text(
-                    item.title,
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.heading3.copyWith(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.bold,
-                      color: item.isEmergency ? AppColors.emergency : AppColors.textPrimary,
-                      height: 1.2,
+                      ],
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  // 2. Flexible internal spacing
+                  const SizedBox(height: 8.0),
+
+                  // 3. Title area with reserved room for wrapping (natural 2-line wrapping)
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        item.title,
+                        textAlign: TextAlign.center,
+                        softWrap: true,
+                        maxLines: (isLongTitle || textScale > 1.3) ? 3 : 2,
+                        style: AppTextStyles.heading3.copyWith(
+                          fontSize: titleFontSize,
+                          fontWeight: FontWeight.w600,
+                          color: item.isEmergency ? AppColors.emergency : AppColors.textPrimary,
+                          height: 1.25,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

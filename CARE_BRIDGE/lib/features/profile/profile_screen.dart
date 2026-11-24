@@ -312,20 +312,10 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: AppDimensions.space20),
 
-            // 2. Language Settings Card (All 23 Supported Indian Languages)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  loc.languageSettingsTitle,
-                  style: AppTextStyles.heading2,
-                ),
-                TextButton.icon(
-                  onPressed: () => _showAllLanguagesSheet(context, authController, activeLang),
-                  icon: const Icon(Icons.translate_rounded, size: 16.0),
-                  label: const Text('All 23 Languages'),
-                ),
-              ],
+            // 2. Language Settings Card
+            Text(
+              loc.languageSettingsTitle,
+              style: AppTextStyles.heading2,
             ),
             const SizedBox(height: AppDimensions.space8),
             Material(
@@ -336,95 +326,30 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  RadioListTile<String>(
-                    key: const Key('language_option_ta'),
-                    value: 'ta',
-                    groupValue: activeLang,
-                    activeColor: AppColors.primary,
-                    title: Row(
-                      children: [
-                        Text(
-                          loc.tamilLang,
-                          style: AppTextStyles.body.copyWith(
-                            fontWeight: activeLang == 'ta' ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '(தமிழ்)',
-                          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
-                        ),
-                      ],
+                  ListTile(
+                    key: const Key('profile_current_language'),
+                    leading: const Icon(Icons.check_circle_rounded, color: AppColors.primary),
+                    title: Text(
+                      '${SupportedLocales.getNativeName(Locale(activeLang))} '
+                      '(${SupportedLocales.getEnglishName(Locale(activeLang))})',
+                      style: AppTextStyles.heading3.copyWith(fontSize: 15.0),
                     ),
-                    onChanged: (val) {
-                      if (val != null) {
-                        authController.setLocale(val);
-                      }
-                    },
-                  ),
-                  const Divider(height: 1, indent: 16),
-                  RadioListTile<String>(
-                    key: const Key('language_option_en'),
-                    value: 'en',
-                    groupValue: activeLang,
-                    activeColor: AppColors.primary,
-                    title: Row(
-                      children: [
-                        Text(
-                          loc.englishLang,
-                          style: AppTextStyles.body.copyWith(
-                            fontWeight: activeLang == 'en' ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '(English)',
-                          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
-                        ),
-                      ],
+                    subtitle: Text(
+                      loc.translate('currentLanguage', 'Current language'),
+                      style: AppTextStyles.caption,
                     ),
-                    onChanged: (val) {
-                      if (val != null) {
-                        authController.setLocale(val);
-                      }
-                    },
-                  ),
-                  const Divider(height: 1, indent: 16),
-                  RadioListTile<String>(
-                    key: const Key('language_option_hi'),
-                    value: 'hi',
-                    groupValue: activeLang,
-                    activeColor: AppColors.primary,
-                    title: Row(
-                      children: [
-                        Text(
-                          loc.hindiLang,
-                          style: AppTextStyles.body.copyWith(
-                            fontWeight: activeLang == 'hi' ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '(हिन्दी)',
-                          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
-                        ),
-                      ],
-                    ),
-                    onChanged: (val) {
-                      if (val != null) {
-                        authController.setLocale(val);
-                      }
-                    },
+                    trailing: const Icon(Icons.check_rounded, color: AppColors.primary),
                   ),
                   const Divider(height: 1, indent: 16),
                   ListTile(
+                    key: const Key('profile_select_language'),
                     leading: const Icon(Icons.language_rounded, color: AppColors.primary),
                     title: Text(
                       loc.languageSelectorTitle,
                       style: AppTextStyles.heading3.copyWith(fontSize: 15.0),
                     ),
                     subtitle: Text(
-                      '${SupportedLocales.getLanguageName(Locale(activeLang))} • 23 Languages',
+                      loc.translate('chooseFrom23Languages', 'Choose from 23 languages'),
                       style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14.0, color: AppColors.textMuted),

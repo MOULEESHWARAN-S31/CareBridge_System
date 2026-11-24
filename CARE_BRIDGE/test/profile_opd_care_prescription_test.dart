@@ -293,8 +293,8 @@ void main() {
     });
   });
 
-  group('3. Language Selector — Tamil & English Only & Global Locale Updates', () {
-    testWidgets('3.1. Shows exactly Tamil and English options and switches locale', (tester) async {
+  group('3. Language Selector — Current Language & Global Locale Updates', () {
+    testWidgets('3.1. Shows current language and opens the complete selector', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -306,20 +306,17 @@ void main() {
       await tester.pumpWidget(createTestApp(const ProfileScreen(), sessionService: session));
       await tester.pumpAndSettle();
 
-      // Check that Tamil, English, and Hindi quick options exist
-      expect(find.byKey(const Key('language_option_ta')), findsOneWidget);
-      expect(find.byKey(const Key('language_option_en')), findsOneWidget);
-      expect(find.byKey(const Key('language_option_hi')), findsOneWidget);
+      expect(find.byKey(const Key('profile_current_language')), findsOneWidget);
+      expect(find.byKey(const Key('profile_select_language')), findsOneWidget);
+      expect(find.text('English (English)'), findsOneWidget);
 
-      // Switching to Tamil updates SessionService
-      await tester.tap(find.byKey(const Key('language_option_ta')));
+      await tester.tap(find.byKey(const Key('profile_select_language')));
+      await tester.pumpAndSettle();
+      expect(find.text('தமிழ் (Tamil)'), findsOneWidget);
+      await tester.tap(find.text('தமிழ் (Tamil)'));
       await tester.pumpAndSettle();
       expect(session.getPreferredLanguage(), equals('ta'));
-
-      // Switching back to English updates SessionService
-      await tester.tap(find.byKey(const Key('language_option_en')));
-      await tester.pumpAndSettle();
-      expect(session.getPreferredLanguage(), equals('en'));
+      expect(find.text('தமிழ் (Tamil)'), findsOneWidget);
     });
   });
 

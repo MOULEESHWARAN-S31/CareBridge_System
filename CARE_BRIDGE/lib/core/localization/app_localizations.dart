@@ -108,6 +108,10 @@ class AppLocalizations {
   String get quickActionFindHospital =>
       _get('quickActionFindHospital', 'Find Hospital');
   String get quickActionEmergency => _get('quickActionEmergency', 'Emergency');
+  String get quickActionHealthcareServices =>
+      _get('quickActionHealthcareServices', 'Healthcare Services');
+  String get quickActionMyAppointments =>
+      _get('quickActionMyAppointments', 'My Appointments');
   String get emergencyAssistanceTitle =>
       _get('emergencyAssistanceTitle', 'Emergency Assistance');
   String get emergencyAssistanceMsg => _get(
@@ -525,6 +529,8 @@ class AppLocalizations {
       'quickActionTalkDoctor': 'Talk to Doctor',
       'quickActionFindHospital': 'Find Hospital',
       'quickActionEmergency': 'Emergency',
+      'quickActionHealthcareServices': 'Healthcare Services',
+      'quickActionMyAppointments': 'My Appointments',
       'emergencyAssistanceTitle': 'Emergency Assistance',
       'emergencyAssistanceMsg':
           'If this is a medical emergency, call 108 or seek immediate medical assistance.',
@@ -787,6 +793,8 @@ class AppLocalizations {
       'quickActionTalkDoctor': 'மருத்துவரிடம் பேசுங்கள்',
       'quickActionFindHospital': 'மருத்துவமனை காண்க',
       'quickActionEmergency': 'அவசரம்',
+      'quickActionHealthcareServices': 'சுகாதார சேவைகள்',
+      'quickActionMyAppointments': 'எனது சந்திப்புகள்',
       'emergencyAssistanceTitle': 'அவசர உதவி',
       'emergencyAssistanceMsg':
           'இது மருத்துவ அவசரநிலை என்றால், 108 ஐ அழைக்கவும் அல்லது உடனடி மருத்துவ உதவியை நாடவும்.',
@@ -1090,6 +1098,8 @@ class AppLocalizations {
       'quickActionTalkDoctor': 'डॉक्टर से बात करें',
       'quickActionFindHospital': 'अस्पताल खोजें',
       'quickActionEmergency': 'आपातकालीन',
+      'quickActionHealthcareServices': 'स्वास्थ्य सेवाएं',
+      'quickActionMyAppointments': 'मेरी नियुक्तियां',
       'emergencyAssistanceTitle': 'आपातकालीन सहायता',
       'emergencyAssistanceMsg':
           'यदि यह एक चिकित्सा आपात स्थिति है, तो 108 पर कॉल करें या तत्काल चिकित्सा सहायता लें।',
